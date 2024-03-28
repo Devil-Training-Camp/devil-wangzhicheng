@@ -4,5 +4,5 @@ module.exports = {
   printWidth: 80,
   singleQuote: true,
   endOfLine: 'auto', // TODO 由.gitattributes控制
-  trailingComma: false
+  trailingComma: 'none'
 }
