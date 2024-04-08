@@ -4,7 +4,6 @@
  */
 {
   "$schema": "https://developer.microsoft.com/json-schemas/rush/v5/rush.schema.json",
-
   /**
    * (Required) This specifies the version of the Rush engine to be used in this repo.
    * Rush's "version selector" feature ensures that the globally installed tool will
@@ -17,7 +16,6 @@
    * correct error-underlining and tab-completion for editors such as VS Code.
    */
   "rushVersion": "5.118.5",
-
   /**
    * The next field selects which package manager should be installed and determines its version.
    * Rush installs its own local copy of the package manager to ensure that your build process
@@ -27,7 +25,6 @@
    * for details about these alternatives.
    */
   "pnpmVersion": "7.33.5",
-
   // "npmVersion": "6.14.15",
   // "yarnVersion": "1.9.4",
 
@@ -43,7 +40,6 @@
    * LTS versions: https://nodejs.org/en/download/releases/
    */
   "nodeSupportedVersionRange": ">=14.15.0 <15.0.0 || >=16.13.0 <17.0.0 || >=18.15.0 <19.0.0",
-
   /**
    * If the version check above fails, Rush will display a message showing the current
    * node version and the supported version range. You can use this setting to provide
@@ -86,7 +82,7 @@
    *
    * The Rush developers recommend a "category folder" model, where buildable project folders
    * must always be exactly two levels below the repo root.  The parent folder acts as the category.
-   * This provides a basic facility for grouping related projects (e.g. "apps", "libraries",
+   * This provides a basic facility for grouping related projects (e.g. "packages", "libraries",
    * "tools", "prototypes") while still encouraging teams to organize their projects into
    * a unified taxonomy.  Limiting to 2 levels seems very restrictive at first, but if you have
    * 20 categories and 20 projects in each category, this scheme can easily accommodate hundreds
@@ -102,8 +98,7 @@
    * and set projectFolderMaxDepth to a large number.
    */
   // "projectFolderMinDepth": 2,
-  // "projectFolderMaxDepth": 2,
-
+  "projectFolderMaxDepth": 3,
   /**
    * Today the npmjs.com registry enforces fairly strict naming rules for packages, but in the early
    * days there was no standard and hardly any enforcement.  A few large legacy projects are still using
@@ -143,7 +138,7 @@
   //     "tools",      // non-shipping projects that are part of the developer toolchain
   //     "prototypes"  // experiments that should mostly be ignored by the review process
   //   ],
-  // 
+  //
   //   /**
   //    * A list of NPM package scopes that will be excluded from review.
   //    * We recommend to exclude TypeScript typings (the "@types" scope), because
@@ -173,14 +168,12 @@
     //   "[^@]+@users\\.noreply\\.github\\.com",
     //   "rush-bot@example\\.org"
     // ],
-
     /**
      * When Rush reports that the address is malformed, the notice can include an example
      * of a recommended email.  Make sure it conforms to one of the allowedEmailRegExps
      * expressions.
      */
     // "sampleEmail": "example@users.noreply.github.com",
-
     /**
      * The commit message to use when committing changes during 'rush publish'.
      *
@@ -189,7 +182,6 @@
      * in the commit message, and then customize Rush's message to contain that string.
      */
     // "versionBumpCommitMessage": "Bump versions [skip ci]",
-
     /**
      * The commit message to use when committing changes during 'rush version'.
      *
@@ -198,15 +190,13 @@
      * in the commit message, and then customize Rush's message to contain that string.
      */
     // "changeLogUpdateCommitMessage": "Update changelogs [skip ci]",
-
     /**
      * The commit message to use when commiting changefiles during 'rush change --commit'
      *
      * If no commit message is set it will default to 'Rush change'
      */
-     // "changefilesCommitMessage": "Rush change"
+    // "changefilesCommitMessage": "Rush change"
   },
-
   "repository": {
     /**
      * The URL of this Git repository, used by "rush change" to determine the base branch for your PR.
@@ -224,20 +214,17 @@
      * to retrieve the latest activity for the remote main branch.
      */
     // "url": "https://github.com/microsoft/rush-example",
-
     /**
      * The default branch name. This tells "rush change" which remote branch to compare against.
      * The default value is "main"
      */
     // "defaultBranch": "main",
-
     /**
      * The default remote. This tells "rush change" which remote to compare against if the remote URL is
      * not set or if a remote matching the provided remote URL is not found.
      */
     // "defaultRemote": "origin"
   },
-
   /**
    * Event hooks are customized script actions that Rush executes when specific events occur
    */
@@ -248,33 +235,27 @@
     "preRushInstall": [
       // "common/scripts/pre-rush-install.js"
     ],
-
     /**
      * A list of shell commands to run after "rush install" or "rush update" finishes installation
      */
     "postRushInstall": [],
-
     /**
      * A list of shell commands to run before "rush build" or "rush rebuild" starts building
      */
     "preRushBuild": [],
-
     /**
      * A list of shell commands to run after "rush build" or "rush rebuild" finishes building
      */
     "postRushBuild": [],
-
     /**
      * A list of shell commands to run before the "rushx" command starts
      */
     "preRushx": [],
-
     /**
      * A list of shell commands to run after the "rushx" command finishes
      */
     "postRushx": []
   },
-
   /**
    * Rush can collect anonymous telemetry about everyday developer activity such as
    * success/failure of installs, builds, and other operations.  You can use this to identify
@@ -313,26 +294,26 @@
   "projects": [
     {
       "packageName": "upload-file-client",
-      "projectFolder": "apps/upload-file-client"
+      "projectFolder": "packages/big-file/upload-file-client"
     }
     // {
     //   /**
     //    * The NPM package name of the project (must match package.json)
     //    */
     //   "packageName": "my-app",
-    // 
+    //
     //   /**
     //    * The path to the project folder, relative to the rush.json config file.
     //    */
-    //   "projectFolder": "apps/my-app",
-    // 
+    //   "projectFolder": "packages/my-app",
+    //
     //   /**
     //    * An optional category for usage in the "browser-approved-packages.json"
     //    * and "nonbrowser-approved-packages.json" files.  The value must be one of the
     //    * strings from the "reviewCategories" defined above.
     //    */
     //   "reviewCategory": "production",
-    // 
+    //
     //   /**
     //    * A list of Rush project names that are to be installed from NPM
     //    * instead of linking to the local project.
@@ -359,20 +340,20 @@
     //   "decoupledLocalDependencies": [
     //     // "my-toolchain"
     //   ],
-    // 
+    //
     //   /**
     //    * If true, then this project will be ignored by the "rush check" command.
     //    * The default value is false.
     //    */
     //   // "skipRushCheck": false,
-    // 
+    //
     //   /**
     //    * A flag indicating that changes to this project will be published to npm, which affects
     //    * the Rush change and publish workflows. The default value is false.
     //    * NOTE: "versionPolicyName" and "shouldPublish" are alternatives; you cannot specify them both.
     //    */
     //   // "shouldPublish": false,
-    // 
+    //
     //   /**
     //    * Facilitates postprocessing of a project's files prior to publishing.
     //    *
@@ -381,14 +362,14 @@
     //    * must contain its own package.json file, which is typically a build output.
     //    */
     //   // "publishFolder": "temp/publish",
-    // 
+    //
     //   /**
     //    * An optional version policy associated with the project.  Version policies are defined
     //    * in "version-policies.json" file.  See the "rush publish" documentation for more info.
     //    * NOTE: "versionPolicyName" and "shouldPublish" are alternatives; you cannot specify them both.
     //    */
     //   // "versionPolicyName": "",
-    // 
+    //
     //   /**
     //    * An optional set of custom tags that can be used to select this project.  For example,
     //    * adding "my-custom-tag" will allow this project to be selected by the
@@ -398,14 +379,14 @@
     //    */
     //   // "tags": [ "1.0.0-release", "frontend-team" ]
     // },
-    // 
+    //
     // {
     //   "packageName": "my-controls",
     //   "projectFolder": "libraries/my-controls",
     //   "reviewCategory": "production",
     //   "tags": [ "frontend-team" ]
     // },
-    // 
+    //
     // {
     //   "packageName": "my-toolchain",
     //   "projectFolder": "tools/my-toolchain",
