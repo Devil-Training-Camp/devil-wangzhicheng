@@ -11,7 +11,7 @@ export function splitFile(
   chunkSize: number = CHUNK_SIZE
 ): FilePiece[] {
   const fileChunks: FilePiece[] = []
-  for (let i: number = 0; i < file.size; i++) {
+  for (let i: number = 0; i < file.size; i += chunkSize) {
     const chunk = file.slice(i, i + chunkSize)
     fileChunks.push({
       chunk,

@@ -11,7 +11,12 @@ export default function Uploader() {
     console.log('file', file)
 
     const fileChunks: FilePiece[] = splitFile(file)
-    const hash: string = await calcHash({ chunks: fileChunks })
+    const hash: string = await calcHash({
+      chunks: fileChunks,
+      onTick: (percentage) => {
+        console.log('percentage', percentage)
+      }
+    })
     console.log('hash', hash)
   }
   return (
