@@ -13,9 +13,11 @@ export function calcHash({
     )
     worker.postMessage(chunks)
     worker.onmessage = (e: MessageEvent) => {
-      const { percentage, hash } = e.data
+      const { percentage, hash, resolved } = e.data
       onTick?.(percentage)
-      resolve(hash)
+      if (resolved) {
+        resolve(hash)
+      }
     }
   })
 }

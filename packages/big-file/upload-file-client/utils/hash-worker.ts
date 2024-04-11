@@ -1,19 +1,25 @@
 import { type FilePiece } from '@/utils/file'
 import SparkMD5 from 'spark-md5'
 
-onmessage = (e: MessageEvent): void => {
+onmessage = async (e: MessageEvent): Promise<void> => {
   const spark: SparkMD5.ArrayBuffer = new SparkMD5.ArrayBuffer()
   console.log('e.data', e.data)
   const chunks: FilePiece[] = e.data
-  chunks.forEach(async (chunk: FilePiece, i: number): Promise<void> => {
+
+  let cur: number = 0
+  let resolved: boolean = false
+  while (cur < chunks?.length) {
+    const chunk: FilePiece = chunks[cur]
     spark.append(await readAsArrayBuffer(chunk.chunk))
-    const percentage: number = (i + 1) / chunks.length
-    postMessage({ percentage })
-  })
-  postMessage({
-    percentage: 1,
-    hash: spark.end()
-  })
+    const percentage: number = (cur + 1) / chunks.length
+    resolved = percentage === 1
+    postMessage({
+      percentage,
+      resolved,
+      hash: resolved ? spark.end() : undefined
+    })
+    ++cur
+  }
 }
 
 async function readAsArrayBuffer(file: Blob): Promise<ArrayBuffer> {

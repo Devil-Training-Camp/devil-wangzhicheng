@@ -8,16 +8,25 @@ export default function Uploader() {
     e: React.ChangeEvent<HTMLInputElement>
   ): Promise<void> => {
     const file: File = e.target.files![0]
-    console.log('file', file)
 
+    // 计算哈希
     const fileChunks: FilePiece[] = splitFile(file)
     const hash: string = await calcHash({
       chunks: fileChunks,
       onTick: (percentage) => {
+        // TODO  实现进度
         console.log('percentage', percentage)
       }
     })
-    console.log('hash', hash)
+
+    // 实现秒传
+    const isExist = await queryFileByHash({ name: file.name, hash })
+    if (isExist) {
+      console.log('文件上传成功，秒传')
+      return
+    }
+
+    //
   }
   return (
     <label htmlFor="uploader">
