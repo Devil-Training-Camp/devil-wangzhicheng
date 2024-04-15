@@ -295,6 +295,10 @@
     {
       "packageName": "@big-file/upload-file-client",
       "projectFolder": "packages/big-file/upload-file-client"
+    },
+    {
+      "packageName": "@big-file/upload-file-server",
+      "projectFolder": "packages/big-file/upload-file-server"
     }
     // {
     //   /**

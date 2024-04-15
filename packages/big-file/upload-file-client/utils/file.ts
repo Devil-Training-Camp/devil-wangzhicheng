@@ -5,6 +5,10 @@ export interface FilePiece {
   size: number
 }
 
+export interface HashPiece extends FilePiece {
+  hash: string
+}
+
 // 分割文件
 export function splitFile(
   file: File,
