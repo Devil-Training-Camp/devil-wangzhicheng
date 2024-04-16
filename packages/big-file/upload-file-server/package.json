@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.ts",
   "scripts": {
-    "dev": "NODE_ENV=development node -r sucrase/register app.ts"
+    "dev": "PORT=4000 NODE_ENV=development node -r sucrase/register app.ts"
   },
   "keywords": [],
   "author": "",

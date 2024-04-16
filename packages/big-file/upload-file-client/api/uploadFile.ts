@@ -1,9 +1,9 @@
-import request from 'axios'
+import request from './index'
 import {
   type FileHashRequestParams,
   type FileHashResponseParams,
   type ResponseParams
-} from '@/types'
+} from '@big-file/upload-file-server/types'
 
 export const findFile = (
   fileHashParams: FileHashRequestParams
