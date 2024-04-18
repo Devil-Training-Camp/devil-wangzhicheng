@@ -4,6 +4,12 @@ import { FileHashResponseParams, ResponseParams } from '@/types'
 const app: Koa = new Koa()
 
 app.use(async (ctx) => {
+  ctx.set('Access-Control-Allow-Origin', '*')
+  ctx.set('Access-Control-Allow-Headers', '*')
+  ctx.set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
+  if (ctx.method === 'OPTIONS') {
+    ctx.body = 200
+  }
   if (ctx.request.method === 'GET' && ctx.request.path === '/') {
     ctx.status = 200
     ctx.body = 'hello world'

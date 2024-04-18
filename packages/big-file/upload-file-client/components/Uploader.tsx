@@ -3,6 +3,7 @@
 import { type FilePiece, type HashPiece, splitFile } from '@/utils/file'
 import { calcHash } from '@/utils/hash'
 import { findFile } from '@/api/uploadFile'
+import IndexedDBStorage from '@/utils/IndexedDBStorage'
 
 export default function Uploader() {
   const handleFileSelect = async (
@@ -30,9 +31,9 @@ export default function Uploader() {
     // 计算每个切片的哈希，保存到本地
     // 如果切片哈希已经保存在本地，直接取出来
     let hashChunks: HashPiece[]
-    const fs: FileStorage = new FileStorage({ type: 'indexedDB' })
-    if (fs.isExists(hash)) {
-      hashChunks = fs.get({ hash })
+    const fs: FileStorage = new IndexedDBStorage()
+    if (fs.isExist(hash)) {
+      hashChunks = fs.get(hash)
     } else {
       hashChunks = await calcChunksHash({
         chunks: fileChunks,
