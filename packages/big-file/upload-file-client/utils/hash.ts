@@ -11,6 +11,7 @@ export function calcHash({
     const worker: Worker = new Worker(
       new URL('hash-worker.ts', import.meta.url)
     )
+    console.log('import.meta.url', import.meta.url)
     worker.postMessage(chunks)
     worker.onmessage = (e: MessageEvent) => {
       const { percentage, hash, resolved } = e.data
