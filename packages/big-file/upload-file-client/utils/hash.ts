@@ -1,23 +1,38 @@
-import { FilePiece } from '@/utils/file'
+import { FilePiece, HashPiece } from '@/utils/file'
 
-export function calcHash({
-  chunks,
-  onTick
-}: {
+export interface CalcHashParams {
   chunks: FilePiece[]
   onTick?: (percentage: number) => void
-}): Promise<string> {
+}
+
+export function calcHash({ chunks, onTick }: CalcHashParams): Promise<string> {
   return new Promise((resolve: (hash: string) => void): void => {
-    const worker: Worker = new Worker(
-      new URL('hash-worker.ts', import.meta.url)
-    )
-    console.log('import.meta.url', import.meta.url)
+    const worker: Worker = new Worker(new URL('hashWorker.ts', import.meta.url))
     worker.postMessage(chunks)
     worker.onmessage = (e: MessageEvent) => {
       const { percentage, hash, resolved } = e.data
       onTick?.(percentage)
       if (resolved) {
         resolve(hash)
+      }
+    }
+  })
+}
+
+export function calcChunksHash({
+  chunks,
+  onTick
+}: CalcHashParams): Promise<HashPiece[]> {
+  return new Promise((resolve: (chunks: HashPiece[]) => void) => {
+    const worker: Worker = new Worker(
+      new URL('hashChunksWorker.ts', import.meta.url)
+    )
+    worker.postMessage(chunks)
+    worker.onmessage = (e: MessageEvent) => {
+      const { percentage, hashChunks, resolved } = e.data
+      onTick?.(percentage)
+      if (resolved) {
+        resolve(hashChunks)
       }
     }
   })

@@ -1,7 +1,7 @@
 'use client'
 
 import { type FilePiece, type HashPiece, splitFile } from '@/utils/file'
-import { calcHash } from '@/utils/hash'
+import { calcHash, calcChunksHash } from '@/utils/hash'
 import { findFile } from '@/api/uploadFile'
 import IndexedDBStorage from '@/utils/IndexedDBStorage'
 import FileStorage from '@/utils/FileStorage'
@@ -34,7 +34,7 @@ export default function Uploader() {
     let hashChunks: HashPiece[]
     const fs: FileStorage = new IndexedDBStorage('bigFile', 'hashChunk', 'hash')
     if (await fs.isExist(hash)) {
-      hashChunks = fs.get(hash)
+      hashChunks = await fs.get<HashPiece[]>(hash)
     } else {
       hashChunks = await calcChunksHash({
         chunks: fileChunks,

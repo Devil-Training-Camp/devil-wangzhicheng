@@ -2,16 +2,16 @@ import FileStorage from '@/utils/FileStorage'
 
 export default class IndexedDBStorage extends FileStorage {
   private request: IDBOpenDBRequest
-  private db: IDBDatabase | undefined
-  private dbName: string
-  private storeName: string
-  private keyPath: string
+  private readonly dbName: string
+  private readonly storeName: string
+  private readonly keyPath: string
 
   constructor(dbName: string, storeName: string, keyPath: string) {
     super()
     this.dbName = dbName
     this.storeName = storeName
     this.keyPath = keyPath
+
     this.request = indexedDB.open(this.dbName, 1)
     this.request.onupgradeneeded = (e: IDBVersionChangeEvent) => {
       const db: IDBDatabase = (e.target as IDBOpenDBRequest).result
@@ -27,7 +27,9 @@ export default class IndexedDBStorage extends FileStorage {
   }
 
   // 读取数据
-  public get(hash: string): Promise<any> {}
+  public get<T>(hash: string): Promise<T> {
+    return Promise.resolve({} as T)
+  }
 
   // 通过哈希查询数据是否存在
   public async isExist(hash: string): Promise<boolean> {
@@ -37,8 +39,8 @@ export default class IndexedDBStorage extends FileStorage {
         reject: (reason: DOMException | null) => void
       ): void => {
         this.request.onsuccess = (e: Event) => {
-          this.db = (e.target as IDBOpenDBRequest).result
-          const request: IDBRequest = this.db
+          const db = (e.target as IDBOpenDBRequest).result
+          const request: IDBRequest = db
             .transaction(this.storeName, 'readonly')
             .objectStore(this.storeName)
             .get(hash)

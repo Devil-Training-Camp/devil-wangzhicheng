@@ -22,7 +22,7 @@ onmessage = async (e: MessageEvent): Promise<void> => {
   }
 }
 
-async function readAsArrayBuffer(file: Blob): Promise<ArrayBuffer> {
+export async function readAsArrayBuffer(file: Blob): Promise<ArrayBuffer> {
   const fileReader: FileReader = new FileReader()
   fileReader.readAsArrayBuffer(file)
   return new Promise((resolve: (buffer: ArrayBuffer) => void): void => {
