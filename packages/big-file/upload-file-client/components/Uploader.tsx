@@ -18,7 +18,7 @@ export default function Uploader() {
       chunks: fileChunks,
       onTick: (percentage: number): void => {
         // TODO  实现进度
-        console.log('percentage', percentage)
+        console.log('整文件进度', percentage)
       }
     })
 
@@ -32,17 +32,21 @@ export default function Uploader() {
     // 计算每个切片的哈希，保存到本地
     // 如果切片哈希已经保存在本地，直接取出来
     let hashChunks: HashPiece[]
-    const fs: FileStorage = new IndexedDBStorage('bigFile', 'hashChunk', 'hash')
+    const fs: FileStorage<string, HashPiece[]> = new IndexedDBStorage<
+      string,
+      HashPiece[]
+    >('bigFile', 'hashChunk', 'hash')
     if (await fs.isExist(hash)) {
-      hashChunks = await fs.get<HashPiece[]>(hash)
+      hashChunks = await fs.get(hash)
     } else {
       hashChunks = await calcChunksHash({
         chunks: fileChunks,
         onTick: (percentage: number): void => {
-          console.log('percentage', percentage)
+          console.log('分片文件进度', percentage)
         }
       })
-      fs.save(hashChunks)
+      console.log('计算得到的切片哈希数组', hashChunks)
+      await fs.save(hash, hashChunks)
     }
 
     // 设置请求处理函数
