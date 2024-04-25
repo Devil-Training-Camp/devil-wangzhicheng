@@ -5,6 +5,7 @@ import { calcHash, calcChunksHash } from '@/utils/hash'
 import { findFile } from '@/api/uploadFile'
 import IndexedDBStorage from '@/utils/IndexedDBStorage'
 import FileStorage from '@/utils/FileStorage'
+import RequestPool from '@/utils/RequestPool'
 
 export default function Uploader() {
   const handleFileSelect = async (
@@ -18,7 +19,7 @@ export default function Uploader() {
       chunks: fileChunks,
       onTick: (percentage: number): void => {
         // TODO  实现进度
-        console.log('整文件进度', percentage)
+        console.log('完整文件进度', percentage)
       }
     })
 
