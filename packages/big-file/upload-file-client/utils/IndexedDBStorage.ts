@@ -5,12 +5,14 @@ export default class IndexedDBStorage<K, T> extends FileStorage<K, T> {
   private db: IDBDatabase | undefined
   private readonly dbName: string
   private readonly storeName: string
+  private readonly key: string
   private readonly keyPath: string
 
-  constructor(dbName: string, storeName: string, keyPath: string) {
+  constructor(dbName: string, storeName: string, key: string, keyPath: string) {
     super()
     this.dbName = dbName
     this.storeName = storeName
+    this.key = key
     this.keyPath = keyPath
   }
 
@@ -35,7 +37,7 @@ export default class IndexedDBStorage<K, T> extends FileStorage<K, T> {
             }
           )
           // 创建索引
-          objectStore.createIndex(this.keyPath, this.keyPath, { unique: true })
+          objectStore.createIndex(this.key, this.keyPath, { unique: true })
           console.log('创建数据库成功')
         }
         this.request.onerror = (e: Event) => {
@@ -51,8 +53,36 @@ export default class IndexedDBStorage<K, T> extends FileStorage<K, T> {
   }
 
   // 读取数据
-  public get(key: K): Promise<T> {
-    return Promise.resolve({} as T)
+  public async get(key: K): Promise<T> {
+    const isConnect: boolean = await this.connect()
+    if (!isConnect) {
+      return undefined!
+    }
+    return new Promise(
+      (
+        resolve: (data: T) => void,
+        reject: (reason: DOMException | null) => void
+      ) => {
+        const request: IDBRequest = this.db!.transaction(
+          this.storeName,
+          'readonly'
+        )
+          .objectStore(this.storeName)
+          .get(String(key))
+
+        request.onsuccess = (e: Event): void => {
+          console.log('哈希查询结果：', request.result)
+          if (request.result) {
+            resolve(request.result.value)
+          }
+          resolve(undefined!)
+        }
+        request.onerror = (e: Event) => {
+          console.log('查询事物失败：', request.error)
+          reject(request.error)
+        }
+      }
+    )
   }
 
   // 通过哈希查询数据是否存在
@@ -72,6 +102,7 @@ export default class IndexedDBStorage<K, T> extends FileStorage<K, T> {
         )
           .objectStore(this.storeName)
           .get(String(key))
+
         request.onsuccess = (e: Event): void => {
           console.log('哈希查询结果：', request.result)
           if (request.result) {
@@ -103,8 +134,8 @@ export default class IndexedDBStorage<K, T> extends FileStorage<K, T> {
         )
           .objectStore(this.storeName)
           .add({
-            [this.keyPath]: key,
-            value
+            [this.key]: key,
+            value: value
           })
         request.onsuccess = (e: Event): void => {
           console.log('添加成功')

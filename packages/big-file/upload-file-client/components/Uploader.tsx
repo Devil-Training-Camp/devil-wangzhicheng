@@ -35,7 +35,7 @@ export default function Uploader() {
     const fs: FileStorage<string, HashPiece[]> = new IndexedDBStorage<
       string,
       HashPiece[]
-    >('bigFile', 'hashChunk', 'hash')
+    >('bigFile', 'hashChunk', 'hash', 'hash')
     if (await fs.isExist(hash)) {
       hashChunks = await fs.get(hash)
     } else {
