@@ -66,13 +66,17 @@ export default function Uploader() {
       return false
     }
     // 创建请求池，设置最大同时请求数
-    const requestPool: RequestPool = new RequestPool({ maximum: 5, retry: 2 })
+    const requestPool: RequestPool<HashPiece> = new RequestPool<HashPiece>({
+      maximum: 5,
+      retry: 2
+    })
+    requestPool.batchAdd()
     requestPool.setHandler(requestHandler)
     requestPool.setData(hashChunks)
+    const pieceState: boolean = await requestPool.start()
     requestPool.on('tick', (percentage: number): void => {
       console.log('上传进度：', percentage)
     })
-    const pieceState: boolean = await requestPool.start()
     if (pieceState) {
       console.log('所有文件分片上传成功')
     } else {
