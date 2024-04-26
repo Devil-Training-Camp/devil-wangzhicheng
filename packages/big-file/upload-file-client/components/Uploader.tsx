@@ -5,7 +5,7 @@ import { calcHash, calcChunksHash } from '@/utils/hash'
 import { findFile } from '@/api/uploadFile'
 import IndexedDBStorage from '@/utils/IndexedDBStorage'
 import FileStorage from '@/utils/FileStorage'
-import RequestPool from '@/utils/RequestPool'
+import PromisePool from '@/utils/PromisePool'
 
 export default function Uploader() {
   const handleFileSelect = async (
@@ -66,7 +66,7 @@ export default function Uploader() {
       return false
     }
     // 创建请求池，设置最大同时请求数
-    const requestPool: RequestPool<HashPiece> = new RequestPool<HashPiece>({
+    const requestPool: PromisePool<HashPiece> = new PromisePool<HashPiece>({
       maximum: 5,
       retry: 2
     })
