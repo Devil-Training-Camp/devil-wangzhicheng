@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.ts",
   "scripts": {
-    "dev": "PORT=4000 NODE_ENV=development node -r sucrase/register app.ts"
+    "dev": "PORT=4000 NODE_ENV=development nodemon --exec ts-node ./app.ts"
   },
   "keywords": [],
   "author": "",
@@ -15,7 +15,8 @@
   "devDependencies": {
     "typescript": "^5",
     "@types/node": "^20",
-    "sucrase": "~3.35.0",
-    "@types/koa": "~2.15.0"
+    "@types/koa": "~2.15.0",
+    "nodemon": "~3.1.0",
+    "ts-node": "~10.9.2"
   }
 }

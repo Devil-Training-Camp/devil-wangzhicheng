@@ -5,6 +5,8 @@ const request: AxiosInstance = axios.create({
   timeout: 5000
 })
 
+request.interceptors.response.use((res) => res.data)
+
 // TODO 处理code不为200的情况
 
 export default request

@@ -2,7 +2,7 @@
 
 import { type FilePiece, type HashPiece, splitFile } from '@/utils/file'
 import { calcHash, calcChunksHash } from '@/utils/hash'
-import { findFile } from '@/api/uploadFile'
+import { findFile, mergeFile, uploadChunk } from '@/api/uploadFile'
 import IndexedDBStorage from '@/utils/IndexedDBStorage'
 import FileStorage from '@/utils/FileStorage'
 import PromisePool from '@/utils/PromisePool'
@@ -57,20 +57,26 @@ export default function Uploader() {
 
     // 设置请求处理函数
     const requestHandler = async (hashChunk: HashPiece): Promise<boolean> => {
-      const isExist = await findFile({ name: file.name, hash })
-      if (isExist) {
+      const { data: checkData } = await findFile({ name: file.name, hash })
+      console.log('check data', checkData)
+      if (checkData.isExist) {
         console.log('文件切片上传成功，秒传')
         setStatus('文件切片上传成功，秒传')
         return true
       }
-      const { code, data, message } = await uploadChunk({ chunk: hashChunk })
-      if (code === 200) {
+      const { data: uploadData } = await uploadChunk({
+        name: file.name,
+        hash,
+        chunk: hashChunk.chunk
+      })
+      if (uploadData.success) {
         console.log('文件切片上传成功')
         setStatus('文件切片上传成功')
         return true
+      } else {
+        console.error('文件切片上传失败')
+        return false
       }
-      console.errror('文件切片上传失败')
-      return false
     }
 
     const requests = hashChunks.map((chunk) => () => requestHandler(chunk))
@@ -87,8 +93,8 @@ export default function Uploader() {
     }
 
     // 合并文件
-    const mergeState: boolean = await mergeFile({ name: file.name, hash })
-    if (mergeState) {
+    const { data: mergeData } = await mergeFile({ name: file.name, hash })
+    if (mergeData.success) {
       console.log('文件合并成功，所有工作完成')
     } else {
       console.log('文件合并失败')
