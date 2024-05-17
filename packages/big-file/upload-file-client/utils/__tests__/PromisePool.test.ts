@@ -11,14 +11,14 @@ const secondTask = () => {
     setTimeout(resolve, 2000, 'slow')
   })
 }
-const taskList = [firstTask, secondTask]
+const taskList = [secondTask, firstTask, firstTask]
 
 test('添加任务，任务列表', () => {
   try {
-    const pool = new PromisePool({ maximum: 3 })
-    pool.addTask(firstTask)
-    pool.addTask(secondTask)
-    pool.addTask(taskList)
+    const pool = new PromisePool({ limit: 3 })
+    pool.run(firstTask)
+    pool.run(secondTask)
+    pool.all(taskList)
     expect(true).toBe(true)
   } catch {
     expect(false).toBe(false)
@@ -26,28 +26,7 @@ test('添加任务，任务列表', () => {
 })
 
 test('执行任务', async () => {
-  const pool = new PromisePool({ maximum: 3 })
-  // [second, first, second, first]
-  pool.addTask(secondTask)
-  pool.addTask(taskList)
-  pool.addTask(firstTask)
-  const res = await pool.start()
-  expect(res).toEqual([
-    {
-      status: 'fulfilled',
-      data: 'quick'
-    },
-    {
-      status: 'fulfilled',
-      data: 'slow'
-    },
-    {
-      status: 'fulfilled',
-      data: 'slow'
-    },
-    {
-      status: 'fulfilled',
-      data: 'quick'
-    }
-  ])
+  const pool = new PromisePool({ limit: 2 })
+  const res = await pool.all(taskList)
+  expect(res).toEqual(['quick', 'slow', 'quick'])
 })

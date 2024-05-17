@@ -6,11 +6,15 @@ import { findFile } from '@/api/uploadFile'
 import IndexedDBStorage from '@/utils/IndexedDBStorage'
 import FileStorage from '@/utils/FileStorage'
 import PromisePool from '@/utils/PromisePool'
+import { useCallback, useState } from 'react'
 
 export default function Uploader() {
+  const [status, setStatus] = useState<string>('')
+
   const handleFileSelect = async (
     e: React.ChangeEvent<HTMLInputElement>
   ): Promise<void> => {
+    setStatus('开始上传...')
     const file: File = e.target.files![0]
 
     // 计算哈希
@@ -27,6 +31,7 @@ export default function Uploader() {
     const { data } = await findFile({ name: file.name, hash })
     if (data.isExist) {
       console.log('文件上传成功，秒传')
+      setStatus('文件上传成功，秒传')
       return
     }
 
@@ -55,33 +60,30 @@ export default function Uploader() {
       const isExist = await findFile({ name: file.name, hash })
       if (isExist) {
         console.log('文件切片上传成功，秒传')
+        setStatus('文件切片上传成功，秒传')
         return true
       }
       const { code, data, message } = await uploadChunk({ chunk: hashChunk })
       if (code === 200) {
         console.log('文件切片上传成功')
+        setStatus('文件切片上传成功')
         return true
       }
       console.errror('文件切片上传失败')
       return false
     }
+
+    const requests = hashChunks.map((chunk) => () => requestHandler(chunk))
     // 创建请求池，设置最大同时请求数
-    const requestPool: PromisePool<HashPiece> = new PromisePool<HashPiece>({
-      maximum: 5,
-      retry: 2
+    const requestPool: PromisePool = new PromisePool({
+      limit: 5
     })
-    requestPool.batchAdd()
-    requestPool.setHandler(requestHandler)
-    requestPool.setData(hashChunks)
-    const pieceState: boolean = await requestPool.start()
-    requestPool.on('tick', (percentage: number): void => {
-      console.log('上传进度：', percentage)
-    })
-    if (pieceState) {
-      console.log('所有文件分片上传成功')
-    } else {
-      console.log('文件分片上传失败')
-      return
+    const res = await requestPool.all(requests)
+
+    if (res.some(Boolean)) {
+      setStatus('部分切片上传失败')
+      console.log('部分切片上传失败')
+      // TODO: 重新上传
     }
 
     // 合并文件
@@ -93,9 +95,14 @@ export default function Uploader() {
       return
     }
   }
+
+  const memoHandleFileSelect = useCallback(handleFileSelect, [])
   return (
-    <label htmlFor="uploader">
-      <input type="file" name="uploader" onChange={handleFileSelect} />
-    </label>
+    <div>
+      <label htmlFor="uploader">
+        <input type="file" name="uploader" onChange={memoHandleFileSelect} />
+      </label>
+      <p>{status}</p>
+    </div>
   )
 }
