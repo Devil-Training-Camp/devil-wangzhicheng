@@ -51,6 +51,7 @@ importers:
 
   ../../packages/big-file/upload-file-server:
     specifiers:
+      '@big-file/upload-file-client': workspace:*
       '@koa/router': ~12.0.1
       '@types/koa': ~2.15.0
       '@types/koa-bodyparser': ~4.3.12
@@ -64,6 +65,7 @@ importers:
       ts-node: ~10.9.2
       typescript: ^5
     dependencies:
+      '@big-file/upload-file-client': link:../upload-file-client
       '@koa/router': 12.0.1
       koa: 2.15.3
       koa-bodyparser: 4.4.1

@@ -8,10 +8,10 @@ import {
 } from '@big-file/upload-file-server/types'
 
 // 判断文件是否存在服务器上
-export const findFile = (
+export const checkFileExists = (
   params: FileHashRequestParams
 ): Promise<ResponseParams<FileHashResponseParams>> => {
-  return request.get(`/files/findFile`, { params })
+  return request.get(`/files/checkFileExists`, { params })
 }
 
 // 上传切片

@@ -2,7 +2,7 @@
 
 import { type FilePiece, type HashPiece, splitFile } from '@/utils/file'
 import { calcHash, calcChunksHash } from '@/utils/hash'
-import { findFile, mergeFile, uploadChunk } from '@/api/uploadFile'
+import { checkFileExists, mergeFile, uploadChunk } from '@/api/uploadFile'
 import IndexedDBStorage from '@/utils/IndexedDBStorage'
 import FileStorage from '@/utils/FileStorage'
 import PromisePool from '@/utils/PromisePool'
@@ -16,6 +16,7 @@ export default function Uploader() {
   ): Promise<void> => {
     setStatus('开始上传...')
     const file: File = e.target.files![0]
+    console.log('选择的文件', file)
 
     // 计算哈希
     const fileChunks: FilePiece[] = splitFile(file)
@@ -28,7 +29,11 @@ export default function Uploader() {
     })
 
     // 实现秒传
-    const { data } = await findFile({ name: file.name, hash })
+    const { data } = await checkFileExists({
+      name: file.name,
+      hash,
+      isChunk: false
+    })
     if (data.isExist) {
       console.log('文件上传成功，秒传')
       setStatus('文件上传成功，秒传')
@@ -57,7 +62,11 @@ export default function Uploader() {
 
     // 设置请求处理函数
     const requestHandler = async (hashChunk: HashPiece): Promise<boolean> => {
-      const { data: checkData } = await findFile({ name: file.name, hash })
+      const { data: checkData } = await checkFileExists({
+        name: file.name,
+        hash,
+        isChunk: true
+      })
       console.log('check data', checkData)
       if (checkData.isExist) {
         console.log('文件切片上传成功，秒传')
@@ -67,6 +76,7 @@ export default function Uploader() {
       const { data: uploadData } = await uploadChunk({
         name: file.name,
         hash,
+        isChunk: true,
         chunk: hashChunk.chunk
       })
       if (uploadData.success) {
@@ -93,7 +103,11 @@ export default function Uploader() {
     }
 
     // 合并文件
-    const { data: mergeData } = await mergeFile({ name: file.name, hash })
+    const { data: mergeData } = await mergeFile({
+      name: file.name,
+      hash,
+      isChunk: false
+    })
     if (mergeData.success) {
       console.log('文件合并成功，所有工作完成')
     } else {

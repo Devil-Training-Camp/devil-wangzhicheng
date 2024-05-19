@@ -9,6 +9,7 @@ export interface ResponseParams<T> {
 export interface FileHashRequestParams {
   name: string
   hash: string
+  isChunk: boolean
 }
 
 export interface FileHashResponseParams {
