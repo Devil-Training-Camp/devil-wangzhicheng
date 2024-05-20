@@ -11,9 +11,56 @@ import { useToast } from '@/components/ui/use-toast'
 import Progress from '@/components/Progress'
 
 export default function Uploader() {
-  const [status, setStatus] = useState<string>('')
+  const [status, setStatus] = useState<string>('进度')
   const [calcHashRatio, setCalcHashRatio] = useState<number>(0)
   const { toast } = useToast()
+
+  // 设置请求处理函数
+  const requestHandler = async (
+    hashChunk: HashPiece,
+    filename: string,
+    fileHash: string
+  ): Promise<boolean> => {
+    try {
+      const { data, code, message } = await checkFileExists({
+        name: filename,
+        hash: fileHash,
+        isChunk: true
+      })
+      if (code === 200) {
+        if (data.isExist) {
+          setStatus(`切片 ${fileHash} 上传成功，秒传`)
+          return true
+        }
+      } else {
+        toast({
+          description: message,
+          duration: 3000,
+          variant: 'destructive'
+        })
+      }
+    } catch {
+      return false
+    }
+
+    try {
+      const { data, code, message } = await uploadChunk({
+        name: filename,
+        hash: fileHash,
+        isChunk: true,
+        chunk: hashChunk.chunk
+      })
+      if (code === 200) {
+        setStatus(`切片 ${fileHash} 上传成功`)
+        return true
+      } else {
+        setStatus(`切片 ${fileHash} 上传失败`)
+        return false
+      }
+    } catch {
+      return false
+    }
+  }
 
   const handleFileSelect = async (
     e: React.ChangeEvent<HTMLInputElement>
@@ -26,34 +73,37 @@ export default function Uploader() {
     const hash: string = await calcHash({
       chunks: fileChunks,
       onTick: (percentage: number): void => {
-        // TODO  实现进度
-        console.log('完整文件进度', percentage)
-        setCalcHashRatio(percentage)
+        const ratio: number = Number(percentage.toFixed(2))
+        setStatus(`计算文件哈希 ${Math.floor(percentage * 100)}%`)
+        setCalcHashRatio(ratio)
       }
     })
 
     // 实现秒传
-    const { data, code, message } = await checkFileExists({
-      name: file.name,
-      hash,
-      isChunk: false
-    })
-    if (code === 200) {
-      if (data.isExist) {
-        setStatus('文件上传成功，秒传')
-        toast({
-          description: '文件上传成功，秒传',
-          duration: 3000
-        })
-        return
-      }
-    } else {
-      toast({
-        description: message,
-        duration: 3000,
-        variant: 'destructive'
+    try {
+      const { data, code, message } = await checkFileExists({
+        name: file.name,
+        hash,
+        isChunk: false
       })
-    }
+      if (code === 200) {
+        if (data.isExist) {
+          setStatus('文件上传成功，秒传')
+          toast({
+            description: '文件上传成功，秒传',
+            duration: 3000
+          })
+          return
+        }
+      } else {
+        setStatus('进度')
+        toast({
+          description: message,
+          duration: 3000,
+          variant: 'destructive'
+        })
+      }
+    } catch {}
 
     // 计算每个切片的哈希，保存到本地
     // 如果切片哈希已经保存在本地，直接取出来
@@ -68,43 +118,16 @@ export default function Uploader() {
       hashChunks = await calcChunksHash({
         chunks: fileChunks,
         onTick: (percentage: number): void => {
-          console.log('分片文件进度', percentage)
+          setStatus(`分片文件 ${Math.floor(percentage * 100)}%`)
         }
       })
-      console.log('计算得到的切片哈希数组', hashChunks)
       await fs.save(hash, hashChunks)
     }
+    setStatus('分片成功')
 
-    // 设置请求处理函数
-    const requestHandler = async (hashChunk: HashPiece): Promise<boolean> => {
-      const { data: checkData } = await checkFileExists({
-        name: file.name,
-        hash,
-        isChunk: true
-      })
-      console.log('check data', checkData)
-      if (checkData.isExist) {
-        console.log('文件切片上传成功，秒传')
-        setStatus('文件切片上传成功，秒传')
-        return true
-      }
-      const { data: uploadData } = await uploadChunk({
-        name: file.name,
-        hash,
-        isChunk: true,
-        chunk: hashChunk.chunk
-      })
-      if (uploadData.success) {
-        console.log('文件切片上传成功')
-        setStatus('文件切片上传成功')
-        return true
-      } else {
-        console.error('文件切片上传失败')
-        return false
-      }
-    }
-
-    const requests = hashChunks.map((chunk) => () => requestHandler(chunk))
+    const requests = hashChunks.map(
+      (chunk) => () => requestHandler(chunk, file.name, hash)
+    )
     // 创建请求池，设置最大同时请求数
     const requestPool: PromisePool = new PromisePool({
       limit: 5
@@ -113,22 +136,22 @@ export default function Uploader() {
 
     if (res.some(Boolean)) {
       setStatus('部分切片上传失败')
-      console.log('部分切片上传失败')
       // TODO: 重新上传
     }
 
     // 合并文件
-    const { data: mergeData } = await mergeFile({
-      name: file.name,
-      hash,
-      isChunk: false
-    })
-    if (mergeData.success) {
-      console.log('文件合并成功，所有工作完成')
-    } else {
-      console.log('文件合并失败')
-      return
-    }
+    try {
+      const { data, code, message } = await mergeFile({
+        name: file.name,
+        hash,
+        isChunk: false
+      })
+      if (code === 200) {
+        setStatus('文件上传成功')
+      } else {
+        setStatus('文件上传失败')
+      }
+    } catch {}
   }
 
   const memoHandleFileSelect = useCallback(handleFileSelect, [])
