@@ -7,16 +7,19 @@ import IndexedDBStorage from '@/utils/IndexedDBStorage'
 import FileStorage from '@/utils/FileStorage'
 import PromisePool from '@/utils/PromisePool'
 import { useCallback, useState } from 'react'
+import { useToast } from '@/components/ui/use-toast'
+import Progress from '@/components/Progress'
 
 export default function Uploader() {
   const [status, setStatus] = useState<string>('')
+  const [calcHashRatio, setCalcHashRatio] = useState<number>(0)
+  const { toast } = useToast()
 
   const handleFileSelect = async (
     e: React.ChangeEvent<HTMLInputElement>
   ): Promise<void> => {
     setStatus('开始上传...')
     const file: File = e.target.files![0]
-    console.log('选择的文件', file)
 
     // 计算哈希
     const fileChunks: FilePiece[] = splitFile(file)
@@ -25,19 +28,31 @@ export default function Uploader() {
       onTick: (percentage: number): void => {
         // TODO  实现进度
         console.log('完整文件进度', percentage)
+        setCalcHashRatio(percentage)
       }
     })
 
     // 实现秒传
-    const { data } = await checkFileExists({
+    const { data, code, message } = await checkFileExists({
       name: file.name,
       hash,
       isChunk: false
     })
-    if (data.isExist) {
-      console.log('文件上传成功，秒传')
-      setStatus('文件上传成功，秒传')
-      return
+    if (code === 200) {
+      if (data.isExist) {
+        setStatus('文件上传成功，秒传')
+        toast({
+          description: '文件上传成功，秒传',
+          duration: 3000
+        })
+        return
+      }
+    } else {
+      toast({
+        description: message,
+        duration: 3000,
+        variant: 'destructive'
+      })
     }
 
     // 计算每个切片的哈希，保存到本地
@@ -123,6 +138,7 @@ export default function Uploader() {
         <input type="file" name="uploader" onChange={memoHandleFileSelect} />
       </label>
       <p>{status}</p>
+      <Progress ratio={calcHashRatio} />
     </div>
   )
 }
