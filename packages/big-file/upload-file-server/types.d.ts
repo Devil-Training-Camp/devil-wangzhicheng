@@ -15,12 +15,3 @@ export interface FileHashRequestParams {
 export interface FileHashResponseParams {
   isExist: boolean
 }
-
-// 上传切片
-export interface UploadChunkRequestParams extends FileHashRequestParams {
-  chunk: Blob
-}
-
-export interface UploadChunkResponseParams {
-  success: boolean
-}

@@ -46,12 +46,12 @@ export default function Uploader() {
         setStatus(`未在服务端查询到切片 ${fileHash}，开始上传该切片...`)
 
         // 上传切片
-        const { code: uploadCode, message: uploadMessage } = await uploadChunk({
-          name: filename,
-          hash: fileHash,
-          isChunk: true,
-          chunk: hashChunk.chunk
-        })
+        const formData = new FormData()
+        formData.append('name', filename)
+        formData.append('hash', fileHash)
+        formData.append('chunk', hashChunk.chunk)
+        const { code: uploadCode, message: uploadMessage } =
+          await uploadChunk(formData)
         if (uploadCode !== 200) {
           setStatus(`切片 ${fileHash} 上传失败: ${uploadMessage}`)
           return false

@@ -1,7 +1,8 @@
 import Koa, { Context, Next } from 'koa'
 import logger from 'koa-logger'
-import bodyParser from 'koa-bodyparser'
+import { koaBody } from 'koa-body'
 import filesRoutes from './routes/filesRoutes'
+import { UPLOAD_FOLDER_PATH } from '@src/utils/constant'
 
 const app: Koa = new Koa()
 app.use(logger())
@@ -16,7 +17,12 @@ app.use(async (ctx: Context, next: Next) => {
     await next()
   }
 })
-app.use(bodyParser())
+app.use(
+  koaBody({
+    multipart: true,
+    formidable: { uploadDir: UPLOAD_FOLDER_PATH, keepExtensions: true }
+  })
+)
 app.use(filesRoutes.routes()).use(filesRoutes.allowedMethods())
 
 app.listen(process.env.PORT, () => {

@@ -4,11 +4,10 @@ import { UPLOAD_FOLDER_PATH } from '@src/utils/constant'
 import type {
   FileHashRequestParams,
   FileHashResponseParams,
-  ResponseParams,
-  UploadChunkRequestParams,
-  UploadChunkResponseParams
+  ResponseParams
 } from '../../types'
 import { getFilename } from '@src/utils/files'
+import formidable from 'formidable'
 
 // 检查文件是否存在
 export const checkFileExists = async (ctx: Context): Promise<void> => {
@@ -33,19 +32,24 @@ export const checkFileExists = async (ctx: Context): Promise<void> => {
 
 // 上传切片到后端
 export const uploadChunk = async (ctx: Context): Promise<void> => {
-  const params: UploadChunkRequestParams = ctx.request
-    .body as UploadChunkRequestParams
-  const fs = new LocalFileStorage({ path: UPLOAD_FOLDER_PATH })
-  const filename = getFilename(params)
-  const res: boolean = await fs.save(filename, params.chunk)
+  const { name, hash }: { name: string; hash: string } = ctx.request.body
+  // const formidableChunk: formidable.File = ctx.request.files!
+  //   .chunk as formidable.File
 
-  const data: UploadChunkResponseParams = {
-    success: res
+  const fs = new LocalFileStorage({ path: UPLOAD_FOLDER_PATH })
+
+  const filenameParams: FileHashRequestParams = {
+    name: name as string,
+    hash: hash,
+    isChunk: true
   }
-  if (res) {
+  const filename = getFilename(filenameParams)
+  // const res: boolean = await fs.save(filename, ctx.req)
+
+  if (false) {
     ctx.body = {
       code: 200,
-      data,
+      data: null,
       message: 'success'
     }
     ctx.status = 200
@@ -53,7 +57,7 @@ export const uploadChunk = async (ctx: Context): Promise<void> => {
   }
   ctx.body = {
     code: 10001,
-    data,
+    data: null,
     message: '切片写入失败'
   }
   ctx.status = 200

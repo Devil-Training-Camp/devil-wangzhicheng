@@ -8,7 +8,6 @@ const request: AxiosInstance = axios.create({
 
 request.interceptors.response.use(
   (res) => {
-    console.log('fulfilled', res)
     return res.data
   },
   (error) => {

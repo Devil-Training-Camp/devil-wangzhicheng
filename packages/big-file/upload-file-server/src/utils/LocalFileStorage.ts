@@ -1,6 +1,8 @@
 // import FileStorage from '@big-file/upload-file-client/utils/FileStorage'
 import * as fsPromises from 'node:fs/promises'
 import * as path from 'node:path'
+import * as formidable from 'formidable'
+import { IncomingMessage } from 'http'
 
 interface LocalFileStorageParams {
   path: string
@@ -43,14 +45,20 @@ export default class LocalFileStorage {
     }
   }
 
-  public async save(key: string, value: Blob): Promise<boolean> {
-    try {
-      const buffer = Buffer.from(await value.arrayBuffer())
-      await fsPromises.writeFile(path.join(this.path, key), buffer)
-      return true
-    } catch (e) {
-      console.error(`写入文件 ${key} 失败：`, e)
-      return false
-    }
+  public async save(key: string, req: IncomingMessage): Promise<boolean> {
+    // try {
+    // const form = new formidable.IncomingForm()
+    // form.uploadDir = this.path
+    // form.keepExtensions = true
+    // form.parse(req, (err, fields, files) => {
+    //   console.log('fields', fields)
+    // })
+    // const buffer = Buffer.from(await value.arrayBuffer())
+    // await fsPromises.writeFile(path.join(this.path, key), buffer)
+    // return true
+    // } catch (e) {
+    //   console.error(`写入文件 ${key} 失败：`, e)
+    //   return false
+    // }
   }
 }
