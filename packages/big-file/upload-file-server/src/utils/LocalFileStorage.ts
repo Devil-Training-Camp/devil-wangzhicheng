@@ -1,4 +1,4 @@
-import FileStorage from '@big-file/upload-file-client/utils/FileStorage'
+// import FileStorage from '@big-file/upload-file-client/utils/FileStorage'
 import * as fsPromises from 'node:fs/promises'
 import * as path from 'node:path'
 
@@ -6,11 +6,11 @@ interface LocalFileStorageParams {
   path: string
 }
 
-export default class LocalFileStorage extends FileStorage<String, Blob> {
+export default class LocalFileStorage {
   private readonly path: string
 
   constructor({ path }: LocalFileStorageParams) {
-    super()
+    // super()
     this.path = path
   }
 
@@ -43,7 +43,14 @@ export default class LocalFileStorage extends FileStorage<String, Blob> {
     }
   }
 
-  public save(key: String, value: Blob): Promise<void> {
-    return Promise.resolve()
+  public async save(key: string, value: Blob): Promise<boolean> {
+    try {
+      const buffer = Buffer.from(await value.arrayBuffer())
+      await fsPromises.writeFile(path.join(this.path, key), buffer)
+      return true
+    } catch (e) {
+      console.error(`写入文件 ${key} 失败：`, e)
+      return false
+    }
   }
 }

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { FileHashRequestParams } from '../../types'
+import type { FileHashRequestParams } from '../../../types'
 import { getFilename } from '../files'
 
 describe('测试getFilename', () => {

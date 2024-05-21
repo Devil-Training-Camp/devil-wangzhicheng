@@ -1,4 +1,4 @@
-import { FileHashRequestParams } from '../types'
+import type { FileHashRequestParams } from '../../types'
 
 /**
  * 文件格式：完整：文件名_hash.后缀
