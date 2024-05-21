@@ -18,7 +18,7 @@ export default function Uploader() {
   /**
    * 请求函数，返回false代表切片上传失败
    */
-  const cbRequestHandler = useCallback(
+  const cbPieceRequestHandler = useCallback(
     async (
       hashChunk: HashPiece,
       filename: string,
@@ -26,34 +26,34 @@ export default function Uploader() {
     ): Promise<boolean> => {
       // 检查切片是否存在
       try {
-        const { data, code, message } = await checkFileExists({
+        const {
+          data: checkData,
+          code: checkCode,
+          message: checkMessage
+        } = await checkFileExists({
           name: filename,
           hash: fileHash,
           isChunk: true
         })
-        if (code !== 200) {
-          setStatus(`切片 ${fileHash} 查询异常`)
+        if (checkCode !== 200) {
+          setStatus(`切片 ${fileHash} 查询异常: ${checkMessage}`)
           return false
         }
-        if (data.isExist) {
+        if (checkData.isExist) {
           setStatus(`切片 ${fileHash} 上传成功，秒传`)
           return true
         }
         setStatus(`未在服务端查询到切片 ${fileHash}，开始上传该切片...`)
-      } catch {
-        return false
-      }
 
-      // 上传切片
-      try {
-        const { data, code, message } = await uploadChunk({
+        // 上传切片
+        const { code: uploadCode, message: uploadMessage } = await uploadChunk({
           name: filename,
           hash: fileHash,
           isChunk: true,
           chunk: hashChunk.chunk
         })
-        if (code !== 200) {
-          setStatus(`切片 ${fileHash} 上传失败`)
+        if (uploadCode !== 200) {
+          setStatus(`切片 ${fileHash} 上传失败: ${uploadMessage}`)
           return false
         }
         setStatus(`切片 ${fileHash} 上传成功`)
@@ -141,7 +141,7 @@ export default function Uploader() {
      * TODO: 保存上传失败的切片的下标
      */
     const requests = hashChunks.map(
-      (chunk) => () => cbRequestHandler(chunk, file.name, hash)
+      (chunk) => () => cbPieceRequestHandler(chunk, file.name, hash)
     )
     // 创建请求池，设置最大同时请求数
     const requestPool: PromisePool = new PromisePool({
