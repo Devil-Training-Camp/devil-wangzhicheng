@@ -14,6 +14,7 @@ request.interceptors.response.use(
       description: 'request error',
       duration: 3000
     })
+    return Promise.reject(error)
   }
 )
 
