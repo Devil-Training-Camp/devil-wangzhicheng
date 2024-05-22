@@ -19,8 +19,7 @@ app.use(async (ctx: Context, next: Next) => {
 })
 app.use(
   koaBody({
-    multipart: true,
-    formidable: { uploadDir: UPLOAD_FOLDER_PATH, keepExtensions: true }
+    multipart: true
   })
 )
 app.use(filesRoutes.routes()).use(filesRoutes.allowedMethods())

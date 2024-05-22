@@ -44,9 +44,9 @@ export const uploadChunk = async (ctx: Context): Promise<void> => {
     isChunk: true
   }
   const filename = getFilename(filenameParams)
-  // const res: boolean = await fs.save(filename, ctx.req)
+  const res: boolean = await fs.save(filename, ctx.req)
 
-  if (false) {
+  if (res) {
     ctx.body = {
       code: 200,
       data: null,
