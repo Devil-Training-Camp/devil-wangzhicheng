@@ -2,13 +2,19 @@
 
 import { type FilePiece, type HashPiece, splitFile } from '@/utils/file'
 import { calcHash, calcChunksHash } from '@/utils/hash'
-import { checkFileExists, mergeFile, uploadChunk } from '@/api/uploadFile'
+import {
+  checkFileExists,
+  mergeFile,
+  uploadChunk,
+  uploadFileInfo
+} from '@/api/uploadFile'
 import IndexedDBStorage from '@/utils/IndexedDBStorage'
 import FileStorage from '@/utils/FileStorage'
 import PromisePool from '@/utils/PromisePool'
 import { useCallback, useState } from 'react'
 import { useToast } from '@/components/ui/use-toast'
 import Progress from '@/components/Progress'
+import { UploadFileInfoRequestParams } from '@big-file/upload-file-server/types'
 
 export default function Uploader() {
   const [status, setStatus] = useState<string>('进度')
@@ -19,11 +25,7 @@ export default function Uploader() {
    * 请求函数，返回false代表切片上传失败
    */
   const cbPieceRequestHandler = useCallback(
-    async (
-      hashChunk: HashPiece,
-      filename: string,
-      fileHash: string
-    ): Promise<boolean> => {
+    async (hashChunk: HashPiece, filename: string): Promise<boolean> => {
       // 检查切片是否存在
       try {
         const {
@@ -32,31 +34,31 @@ export default function Uploader() {
           message: checkMessage
         } = await checkFileExists({
           name: filename,
-          hash: fileHash,
+          hash: hashChunk.hash,
           isChunk: true
         })
         if (checkCode !== 200) {
-          setStatus(`切片 ${fileHash} 查询异常: ${checkMessage}`)
+          setStatus(`切片 ${hashChunk.hash} 查询异常: ${checkMessage}`)
           return false
         }
         if (checkData.isExist) {
-          setStatus(`切片 ${fileHash} 上传成功，秒传`)
+          setStatus(`切片 ${hashChunk.hash} 上传成功，秒传`)
           return true
         }
-        setStatus(`未在服务端查询到切片 ${fileHash}，开始上传该切片...`)
+        setStatus(`未在服务端查询到切片 ${hashChunk.hash}，开始上传该切片...`)
 
         // 上传切片
         const formData = new FormData()
         formData.append('name', filename)
-        formData.append('hash', fileHash)
+        formData.append('hash', hashChunk.hash)
         formData.append('chunk', hashChunk.chunk)
         const { code: uploadCode, message: uploadMessage } =
           await uploadChunk(formData)
         if (uploadCode !== 200) {
-          setStatus(`切片 ${fileHash} 上传失败: ${uploadMessage}`)
+          setStatus(`切片 ${hashChunk.hash} 上传失败: ${uploadMessage}`)
           return false
         }
-        setStatus(`切片 ${fileHash} 上传成功`)
+        setStatus(`切片 ${hashChunk.hash} 上传成功`)
         return true
       } catch {
         return false
@@ -95,19 +97,10 @@ export default function Uploader() {
       })
       if (code !== 200) {
         setStatus('上传失败')
-        toast({
-          description: message,
-          duration: 3000,
-          variant: 'destructive'
-        })
         return
       }
       if (data.isExist) {
         setStatus('文件上传成功，秒传')
-        toast({
-          description: '文件上传成功，秒传',
-          duration: 3000
-        })
         return
       }
       setStatus('未在服务端查询到文件，开始上传文件...')
@@ -137,17 +130,45 @@ export default function Uploader() {
     setStatus('分片成功')
 
     /**
+     * step: 3.5 首先上传文件信息
+     */
+    try {
+      const params: UploadFileInfoRequestParams = {
+        name: file.name,
+        hash: hash,
+        chunks: hashChunks.map((chunk: HashPiece, index: number) => ({
+          hash: chunk.hash,
+          index
+        }))
+      }
+      const { code, message } = await uploadFileInfo(params)
+      if (code !== 200) {
+        setStatus('文件信息上传成功')
+        return
+      }
+      setStatus('文件信息上传失败')
+      toast({
+        description: message,
+        duration: 3000,
+        variant: 'destructive'
+      })
+    } catch {
+      setStatus('文件信息上传失败')
+    }
+
+    /**
      * step 4: 创建并发池，上传切片
      * TODO: 保存上传失败的切片的下标
      */
     const requests = hashChunks.map(
-      (chunk) => () => cbPieceRequestHandler(chunk, file.name, hash)
+      (chunk) => () => cbPieceRequestHandler(chunk, file.name)
     )
     // 创建请求池，设置最大同时请求数
     const requestPool: PromisePool = new PromisePool({
       limit: 5
     })
     const piecesUpload: boolean[] = await requestPool.all(requests)
+    console.log('上传结果', piecesUpload)
 
     if (piecesUpload.some(Boolean)) {
       setStatus('部分切片上传失败')
@@ -160,8 +181,7 @@ export default function Uploader() {
     try {
       const { data, code, message } = await mergeFile({
         name: file.name,
-        hash,
-        isChunk: false
+        hash
       })
       if (code !== 200) {
         setStatus('文件上传成功')

@@ -17,11 +17,7 @@ app.use(async (ctx: Context, next: Next) => {
     await next()
   }
 })
-app.use(
-  koaBody({
-    multipart: true
-  })
-)
+app.use(koaBody())
 app.use(filesRoutes.routes()).use(filesRoutes.allowedMethods())
 
 app.listen(process.env.PORT, () => {
