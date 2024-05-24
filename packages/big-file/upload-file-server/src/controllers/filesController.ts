@@ -2,7 +2,6 @@ import { Context } from 'koa'
 import LocalFileStorage from '@src/utils/LocalFileStorage'
 import { UPLOAD_FOLDER_PATH } from '@src/utils/constant'
 import type {
-  ChunkInfo,
   FileHashRequestParams,
   FileHashResponseParams,
   FileMergeRequestParams,
@@ -11,8 +10,6 @@ import type {
 import { getFilename } from '@src/utils/files'
 import * as path from 'node:path'
 import fsPromises from 'node:fs/promises'
-import stream from 'node:stream/promises'
-import * as zlib from 'node:zlib'
 
 // 检查文件是否存在
 export const checkFileExists = async (ctx: Context): Promise<void> => {

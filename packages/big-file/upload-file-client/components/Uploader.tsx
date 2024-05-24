@@ -61,6 +61,34 @@ export default function Uploader() {
     []
   )
 
+  const uploadChunks = async (
+    hashChunks: HashPiece[],
+    filename: string,
+    retry: number = 0
+  ) => {
+    const requests = hashChunks.map(
+      (chunk) => () => cbPieceRequestHandler(chunk, filename)
+    )
+    // 创建请求池，设置最大同时请求数
+    const requestPool: PromisePool = new PromisePool({
+      limit: 5
+    })
+    const piecesUpload: boolean[] = await requestPool.all(requests)
+    console.log('上传结果', piecesUpload)
+
+    if (!piecesUpload.every(Boolean)) {
+      setStatus('有切片上传失败')
+      // TODO: 重新上传
+      const retryHashChunks = hashChunks.filter(
+        (undefined, index: number) => !piecesUpload[index]
+      )
+      setTimeout(() => {
+        uploadChunk(retryHashChunks, filename, retry++)
+      }, 5000)
+      return
+    }
+  }
+
   const handleFileSelect = async (
     e: React.ChangeEvent<HTMLInputElement>
   ): Promise<void> => {
