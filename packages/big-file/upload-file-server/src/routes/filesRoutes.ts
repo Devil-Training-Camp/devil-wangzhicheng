@@ -2,8 +2,7 @@ import Router from '@koa/router'
 import {
   checkFileExists,
   uploadChunk,
-  mergeFile,
-  uploadFileInfo
+  mergeFile
 } from '@src/controllers/filesController'
 import { koaBody } from 'koa-body'
 import { UPLOAD_FOLDER_PATH } from '@src/utils/constant'
@@ -11,8 +10,6 @@ import { UPLOAD_FOLDER_PATH } from '@src/utils/constant'
 const router = new Router()
 
 router.get('/files/checkFileExists', checkFileExists)
-
-router.post('/files/uploadFileInfo', uploadFileInfo)
 
 router.post(
   '/files/uploadChunk',
@@ -25,6 +22,6 @@ router.post(
   uploadChunk
 )
 
-router.get('/files/mergeFile', mergeFile)
+router.post('/files/mergeFile', mergeFile)
 
 export default router

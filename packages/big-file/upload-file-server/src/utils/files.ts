@@ -9,11 +9,12 @@ export const getFilename = ({
   hash,
   isChunk
 }: FileHashRequestParams): string => {
+  if (isChunk) {
+    return hash
+  }
   // 爱来自chatgpt
   const [prefix = name, suffix = ''] = (
     name.match(/(.*)\.([^.]+)$/) ?? []
   ).slice(1)
-  return isChunk
-    ? `${prefix}_${hash}`
-    : `${prefix}_${hash}${suffix.length ? '.' : ''}${suffix}`
+  return `${prefix}_${hash}${suffix.length ? '.' : ''}${suffix}`
 }

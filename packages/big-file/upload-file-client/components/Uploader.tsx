@@ -2,19 +2,13 @@
 
 import { type FilePiece, type HashPiece, splitFile } from '@/utils/file'
 import { calcHash, calcChunksHash } from '@/utils/hash'
-import {
-  checkFileExists,
-  mergeFile,
-  uploadChunk,
-  uploadFileInfo
-} from '@/api/uploadFile'
+import { checkFileExists, mergeFile, uploadChunk } from '@/api/uploadFile'
 import IndexedDBStorage from '@/utils/IndexedDBStorage'
 import FileStorage from '@/utils/FileStorage'
 import PromisePool from '@/utils/PromisePool'
 import { useCallback, useState } from 'react'
 import { useToast } from '@/components/ui/use-toast'
 import Progress from '@/components/Progress'
-import { UploadFileInfoRequestParams } from '@big-file/upload-file-server/types'
 
 export default function Uploader() {
   const [status, setStatus] = useState<string>('进度')
@@ -130,33 +124,6 @@ export default function Uploader() {
     setStatus('分片成功')
 
     /**
-     * step: 3.5 首先上传文件信息
-     */
-    try {
-      const params: UploadFileInfoRequestParams = {
-        name: file.name,
-        hash: hash,
-        chunks: hashChunks.map((chunk: HashPiece, index: number) => ({
-          hash: chunk.hash,
-          index
-        }))
-      }
-      const { code, message } = await uploadFileInfo(params)
-      if (code !== 200) {
-        setStatus('文件信息上传成功')
-        return
-      }
-      setStatus('文件信息上传失败')
-      toast({
-        description: message,
-        duration: 3000,
-        variant: 'destructive'
-      })
-    } catch {
-      setStatus('文件信息上传失败')
-    }
-
-    /**
      * step 4: 创建并发池，上传切片
      * TODO: 保存上传失败的切片的下标
      */
@@ -170,24 +137,30 @@ export default function Uploader() {
     const piecesUpload: boolean[] = await requestPool.all(requests)
     console.log('上传结果', piecesUpload)
 
-    if (piecesUpload.some(Boolean)) {
-      setStatus('部分切片上传失败')
+    if (!piecesUpload.every(Boolean)) {
+      setStatus('有切片上传失败')
       // TODO: 重新上传
+      return
     }
 
     /**
      * step 5：合并文件
      */
     try {
-      const { data, code, message } = await mergeFile({
+      const { code, message } = await mergeFile({
         name: file.name,
-        hash
+        hash,
+        chunks: hashChunks.map((chunk, index) => ({
+          hash: chunk.hash,
+          index,
+          size: chunk.size
+        }))
       })
       if (code !== 200) {
-        setStatus('文件上传成功')
+        setStatus('文件上传失败')
         return
       }
-      setStatus('文件上传失败')
+      setStatus('文件上传成功')
       toast({
         description: message,
         duration: 3000,

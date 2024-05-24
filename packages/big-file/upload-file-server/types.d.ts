@@ -5,14 +5,19 @@ export interface ResponseParams<T> {
   message: string
 }
 
-// 合并文件
-export interface FileMergeRequestParams {
+// 基础
+interface FileBaseRequestParams {
   name: string
   hash: string
 }
 
+// 合并文件
+export interface FileMergeRequestParams extends FileBaseRequestParams {
+  chunks: ChunkInfo[]
+}
+
 // 判断文件是否存在
-export interface FileHashRequestParams extends FileMergeRequestParams {
+export interface FileHashRequestParams extends FileBaseRequestParams {
   isChunk: boolean
 }
 
@@ -21,11 +26,8 @@ export interface FileHashResponseParams {
 }
 
 // 上传文件信息
-interface chunkInfo {
+interface ChunkInfo {
   hash: string
   index: number
-}
-
-export interface UploadFileInfoRequestParams extends FileMergeRequestParams {
-  chunks: chunkInfo[]
+  size: number
 }
