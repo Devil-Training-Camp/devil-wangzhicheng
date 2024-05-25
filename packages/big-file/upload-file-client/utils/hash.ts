@@ -18,6 +18,7 @@ export function calcHash({ chunks, onTick }: CalcHashParams): Promise<string> {
       }: { percentage: number; hash: string; resolved: boolean } = e.data
       onTick?.(percentage)
       if (resolved) {
+        console.log('文件hash：', hash)
         resolve(hash)
       }
     }

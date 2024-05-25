@@ -1,109 +1,45 @@
 'use client'
 
-import { type FilePiece, type HashPiece, splitFile } from '@/utils/file'
+import {
+  type FilePiece,
+  type HashPiece,
+  splitFile,
+  uploadChunks
+} from '@/utils/file'
 import { calcHash, calcChunksHash } from '@/utils/hash'
-import { checkFileExists, mergeFile, uploadChunk } from '@/api/uploadFile'
+import { checkFileExists, mergeFile } from '@/api/uploadFile'
 import IndexedDBStorage from '@/utils/IndexedDBStorage'
 import FileStorage from '@/utils/FileStorage'
-import PromisePool from '@/utils/PromisePool'
-import { useCallback, useState } from 'react'
-import { useToast } from '@/components/ui/use-toast'
+import { useState } from 'react'
 import Progress from '@/components/Progress'
 
+// TODO 暂停
+// TODO 多文件
+// TODO 测试重传
+
 export default function Uploader() {
-  const [status, setStatus] = useState<string>('进度')
+  const [status, setStatus] = useState<string>()
   const [calcHashRatio, setCalcHashRatio] = useState<number>(0)
-  const { toast } = useToast()
-
+  const [uploadFile, setUploadFile] = useState<File>()
   /**
-   * 请求函数，返回false代表切片上传失败
+   * -1 上传失败
+   * 0 未开始上传
+   * 1 上传成功
+   * 2 上传中
    */
-  const cbPieceRequestHandler = useCallback(
-    async (hashChunk: HashPiece, filename: string): Promise<boolean> => {
-      // 检查切片是否存在
-      try {
-        const {
-          data: checkData,
-          code: checkCode,
-          message: checkMessage
-        } = await checkFileExists({
-          name: filename,
-          hash: hashChunk.hash,
-          isChunk: true
-        })
-        if (checkCode !== 200) {
-          setStatus(`切片 ${hashChunk.hash} 查询异常: ${checkMessage}`)
-          return false
-        }
-        if (checkData.isExist) {
-          setStatus(`切片 ${hashChunk.hash} 上传成功，秒传`)
-          return true
-        }
-        setStatus(`未在服务端查询到切片 ${hashChunk.hash}，开始上传该切片...`)
+  const [uploadStatus, setUploadStatus] = useState<number>(0)
 
-        // 上传切片
-        const formData = new FormData()
-        formData.append('name', filename)
-        formData.append('hash', hashChunk.hash)
-        formData.append('chunk', hashChunk.chunk)
-        const { code: uploadCode, message: uploadMessage } =
-          await uploadChunk(formData)
-        if (uploadCode !== 200) {
-          setStatus(`切片 ${hashChunk.hash} 上传失败: ${uploadMessage}`)
-          return false
-        }
-        setStatus(`切片 ${hashChunk.hash} 上传成功`)
-        return true
-      } catch {
-        return false
-      }
-    },
-    []
-  )
-
-  const uploadChunks = async (
-    hashChunks: HashPiece[],
-    filename: string,
-    retry: number = 0
-  ) => {
-    const requests = hashChunks.map(
-      (chunk) => () => cbPieceRequestHandler(chunk, filename)
-    )
-    // 创建请求池，设置最大同时请求数
-    const requestPool: PromisePool = new PromisePool({
-      limit: 5
-    })
-    const piecesUpload: boolean[] = await requestPool.all(requests)
-    console.log('上传结果', piecesUpload)
-
-    if (!piecesUpload.every(Boolean)) {
-      setStatus('有切片上传失败')
-      // TODO: 重新上传
-      const retryHashChunks = hashChunks.filter(
-        (undefined, index: number) => !piecesUpload[index]
-      )
-      setTimeout(() => {
-        uploadChunk(retryHashChunks, filename, retry++)
-      }, 5000)
-      return
-    }
-  }
-
-  const handleFileSelect = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ): Promise<void> => {
-    setStatus('开始上传...')
-    const file: File = e.target.files![0]
-
+  const upload = async (file: File): Promise<boolean> => {
     /**
      * step 1: 计算文件哈希
      */
+    setStatus('开始上传...')
     const fileChunks: FilePiece[] = splitFile(file)
     const hash: string = await calcHash({
       chunks: fileChunks,
       onTick: (percentage: number): void => {
         const ratio: number = Number(percentage.toFixed(2))
-        setStatus(`计算文件哈希 ${Math.floor(percentage * 100)}%`)
+        setStatus(`计算文件哈希中：${Math.floor(percentage * 100)}%`)
         setCalcHashRatio(ratio)
       }
     })
@@ -112,22 +48,21 @@ export default function Uploader() {
      * step 2 检查服务器是否存在文件，文件存在直接上传成功
      */
     try {
-      const { data, code, message } = await checkFileExists({
+      const { data, code } = await checkFileExists({
         name: file.name,
         hash,
         isChunk: false
       })
       if (code !== 200) {
         setStatus('上传失败')
-        return
+        return false
       }
       if (data.isExist) {
-        setStatus('文件上传成功，秒传')
-        return
+        setStatus('上传成功（秒传）')
+        return true
       }
-      setStatus('未在服务端查询到文件，开始上传文件...')
     } catch {
-      return
+      return false
     }
 
     /**
@@ -144,31 +79,21 @@ export default function Uploader() {
       hashChunks = await calcChunksHash({
         chunks: fileChunks,
         onTick: (percentage: number): void => {
-          setStatus(`分片文件 ${Math.floor(percentage * 100)}%`)
+          setStatus(`文件切片中：${Math.floor(percentage * 100)}%`)
         }
       })
       await fs.save(hash, hashChunks)
     }
-    setStatus('分片成功')
 
     /**
      * step 4: 创建并发池，上传切片
-     * TODO: 保存上传失败的切片的下标
      */
-    const requests = hashChunks.map(
-      (chunk) => () => cbPieceRequestHandler(chunk, file.name)
-    )
-    // 创建请求池，设置最大同时请求数
-    const requestPool: PromisePool = new PromisePool({
-      limit: 5
-    })
-    const piecesUpload: boolean[] = await requestPool.all(requests)
-    console.log('上传结果', piecesUpload)
-
-    if (!piecesUpload.every(Boolean)) {
-      setStatus('有切片上传失败')
-      // TODO: 重新上传
-      return
+    // TODO onTick
+    setStatus('上传中...')
+    const uploadChunksRes: boolean = await uploadChunks(hashChunks, file.name)
+    if (!uploadChunksRes) {
+      setStatus(`上传失败`)
+      return false
     }
 
     /**
@@ -185,28 +110,47 @@ export default function Uploader() {
         }))
       })
       if (code !== 200) {
-        setStatus('文件上传失败')
-        return
+        setStatus('上传失败')
+        return false
       }
-      setStatus('文件上传成功')
-      toast({
-        description: message,
-        duration: 3000,
-        variant: 'destructive'
-      })
+      setStatus('上传成功')
+      return true
     } catch {
-      setStatus('文件上传失败')
+      setStatus('上传失败')
+      return false
     }
   }
 
-  const cbHandleFileSelect = useCallback(handleFileSelect, [])
+  const handleFileSelect = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ): Promise<void> => {
+    const file: File = e.target.files![0]
+    setUploadFile(file)
+    setUploadStatus(2)
+    const uploadSuccess: boolean = await upload(file)
+    setUploadStatus(uploadSuccess ? 1 : -1)
+  }
+
   return (
     <div>
       <label htmlFor="uploader">
-        <input type="file" name="uploader" onChange={cbHandleFileSelect} />
+        <input
+          type="file"
+          name="uploader"
+          onChange={handleFileSelect}
+          multiple
+        />
       </label>
-      <p>{status}</p>
-      <Progress ratio={calcHashRatio} />
+      {uploadFile && (
+        <>
+          <p>{uploadFile.name}</p>
+          <p>{status}</p>
+          <Progress ratio={calcHashRatio} />
+        </>
+      )}
+      {uploadStatus === -1 && (
+        <button onClick={() => upload(uploadFile!)}>重新上传</button>
+      )}
     </div>
   )
 }

@@ -98,6 +98,23 @@ export const mergeFile = async (ctx: Context): Promise<void> => {
       message: '文件合并成功'
     }
     ctx.status = 200
+
+    // 删除分片
+    try {
+      await Promise.all(
+        params.chunks.map((chunk) => {
+          const sourceFilename = path.join(
+            UPLOAD_FOLDER_PATH,
+            getFilename({
+              name: params.name,
+              hash: chunk.hash,
+              isChunk: true
+            })
+          )
+          return fsPromises.unlink(sourceFilename)
+        })
+      )
+    } catch {}
   } catch (e) {
     ctx.body = {
       code: 10002,
