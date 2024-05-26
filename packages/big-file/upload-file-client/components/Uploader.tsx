@@ -13,7 +13,6 @@ import FileStorage from '@/utils/FileStorage'
 import { useState } from 'react'
 import Progress from '@/components/Progress'
 
-// TODO 暂停
 // TODO 多文件
 // TODO 测试重传
 
@@ -26,8 +25,10 @@ export default function Uploader() {
    * 0 未开始上传
    * 1 上传成功
    * 2 上传中
+   * 3 暂停中
    */
   const [uploadStatus, setUploadStatus] = useState<number>(0)
+  const [pauseSignal, setPauseSignal] = useState<boolean>(false)
 
   const upload = async (file: File): Promise<boolean> => {
     /**
@@ -38,9 +39,8 @@ export default function Uploader() {
     const hash: string = await calcHash({
       chunks: fileChunks,
       onTick: (percentage: number): void => {
-        const ratio: number = Number(percentage.toFixed(2))
+        setCalcHashRatio(Number(percentage.toFixed(2)))
         setStatus(`计算文件哈希中：${Math.floor(percentage * 100)}%`)
-        setCalcHashRatio(ratio)
       }
     })
 
@@ -79,6 +79,7 @@ export default function Uploader() {
       hashChunks = await calcChunksHash({
         chunks: fileChunks,
         onTick: (percentage: number): void => {
+          setCalcHashRatio(Number(percentage.toFixed(2)))
           setStatus(`文件切片中：${Math.floor(percentage * 100)}%`)
         }
       })
@@ -131,6 +132,25 @@ export default function Uploader() {
     setUploadStatus(uploadSuccess ? 1 : -1)
   }
 
+  const pause = () => {}
+
+  const goOn = () => {}
+
+  const uploadActionMap: any = {
+    '-1': {
+      label: '重新上传',
+      action: () => upload(uploadFile!)
+    },
+    '2': {
+      label: '暂停',
+      action: () => pause()
+    },
+    '3': {
+      label: '继续',
+      action: () => goOn()
+    }
+  }
+
   return (
     <div>
       <label htmlFor="uploader">
@@ -148,8 +168,13 @@ export default function Uploader() {
           <Progress ratio={calcHashRatio} />
         </>
       )}
-      {uploadStatus === -1 && (
-        <button onClick={() => upload(uploadFile!)}>重新上传</button>
+      {uploadActionMap[uploadStatus] && (
+        <button
+          className="border-white border-2 px-2 py -1"
+          onClick={uploadActionMap[uploadStatus].action}
+        >
+          {uploadActionMap[uploadStatus].label}
+        </button>
       )}
     </div>
   )
