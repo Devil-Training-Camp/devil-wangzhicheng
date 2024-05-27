@@ -101,7 +101,7 @@ export default function Uploader() {
      * step 5：合并文件
      */
     try {
-      const { code, message } = await mergeFile({
+      const { code } = await mergeFile({
         name: file.name,
         hash,
         chunks: hashChunks.map((chunk, index) => ({

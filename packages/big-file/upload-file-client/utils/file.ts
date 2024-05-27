@@ -19,7 +19,7 @@ export function splitFile(
 ): FilePiece[] {
   const fileChunks: FilePiece[] = []
   for (let i: number = 0; i < file.size; i += chunkSize) {
-    const chunk = file.slice(i, i + chunkSize)
+    const chunk: Blob = file.slice(i, i + chunkSize)
     fileChunks.push({
       chunk,
       size: chunk.size
@@ -40,7 +40,7 @@ export async function uploadChunks(
   retry: number = 0
 ): Promise<boolean> {
   const requests = hashChunks.map(
-    (chunk) => () => pieceRequestHandler(chunk, filename)
+    (chunk: HashPiece) => () => pieceRequestHandler(chunk, filename)
   )
   // 创建请求池，设置最大同时请求数
   const requestPool: PromisePool = new PromisePool({

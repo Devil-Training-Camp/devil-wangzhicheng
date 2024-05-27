@@ -9,12 +9,14 @@ export default class Props {
   private activeTask: number
   private queue: Array<() => void>
   private result: any[]
+  private pauseSignal: boolean
 
   constructor({ limit }: PromisePoolProps) {
     this.limit = limit
     this.queue = []
     this.activeTask = 0
     this.result = []
+    this.pauseSignal = false
   }
 
   async run(task: Task): Promise<any> {
@@ -42,5 +44,13 @@ export default class Props {
   async all(tasks: Task[]): Promise<any[]> {
     await Promise.all(tasks.map((task: Task) => this.run(task)))
     return this.result
+  }
+
+  pause(): void {
+    this.pauseSignal = true
+  }
+
+  continue(): void {
+    this.pauseSignal = false
   }
 }
