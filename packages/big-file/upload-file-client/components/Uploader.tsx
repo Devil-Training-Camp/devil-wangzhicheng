@@ -3,8 +3,8 @@
 import {
   type FilePiece,
   type HashPiece,
-  splitFile,
-  uploadChunks
+  pieceRequestHandler,
+  splitFile
 } from '@/utils/file'
 import { calcHash, calcChunksHash } from '@/utils/hash'
 import { checkFileExists, mergeFile } from '@/api/uploadFile'
@@ -12,6 +12,9 @@ import IndexedDBStorage from '@/utils/IndexedDBStorage'
 import FileStorage from '@/utils/FileStorage'
 import { useState } from 'react'
 import Progress from '@/components/Progress'
+import PromisePool from '@/utils/PromisePool'
+import { RETRY } from '@/const'
+import { sleep } from '@/utils'
 
 // TODO 多文件
 // TODO 测试重传
@@ -20,15 +23,18 @@ export default function Uploader() {
   const [status, setStatus] = useState<string>()
   const [calcHashRatio, setCalcHashRatio] = useState<number>(0)
   const [uploadFile, setUploadFile] = useState<File>()
+  const [requestPool, setRequestPool] = useState<PromisePool>()
   /**
    * -1 上传失败
-   * 0 未开始上传
-   * 1 上传成功
-   * 2 上传中
+   * 0 未有文件
+   * 1 未开始上传
+   * 2 上传中，本地处理
    * 3 暂停中
+   * 4 上传成功
+   * 5 上传中，可暂停
+   * 6 上传中，合并文件
    */
   const [uploadStatus, setUploadStatus] = useState<number>(0)
-  const [pauseSignal, setPauseSignal] = useState<boolean>(false)
 
   const upload = async (file: File): Promise<boolean> => {
     /**
@@ -89,8 +95,41 @@ export default function Uploader() {
     /**
      * step 4: 创建并发池，上传切片
      */
-    // TODO onTick
     setStatus('上传中...')
+    setUploadStatus(5)
+    const uploadChunks = async (
+      hashChunks: HashPiece[],
+      filename: string,
+      retry: number = 0
+    ): Promise<boolean> => {
+      const requests = hashChunks.map(
+        (chunk: HashPiece) => () => pieceRequestHandler(chunk, filename)
+      )
+      // 创建请求池，设置最大同时请求数
+      const requestPool = new PromisePool({
+        limit: 5,
+        onTick: (percentage: number): void => {
+          setCalcHashRatio(Number(percentage.toFixed(2)))
+          setStatus(`文件上传中：${Math.floor(percentage * 100)}%`)
+        }
+      })
+      setRequestPool(requestPool)
+      const piecesUpload: boolean[] = await requestPool.all(requests)
+      console.log('上传结果', piecesUpload)
+
+      if (!piecesUpload.every(Boolean)) {
+        if (retry >= RETRY) {
+          return false
+        }
+        console.log('重传次数：', retry)
+        const retryHashChunks = hashChunks.filter(
+          (undefined, index: number) => !piecesUpload[index]
+        )
+        await sleep(3000)
+        return uploadChunks(retryHashChunks, filename, ++retry)
+      }
+      return true
+    }
     const uploadChunksRes: boolean = await uploadChunks(hashChunks, file.name)
     if (!uploadChunksRes) {
       setStatus(`上传失败`)
@@ -100,6 +139,7 @@ export default function Uploader() {
     /**
      * step 5：合并文件
      */
+    setUploadStatus(6)
     try {
       const { code } = await mergeFile({
         name: file.name,
@@ -127,21 +167,47 @@ export default function Uploader() {
   ): Promise<void> => {
     const file: File = e.target.files![0]
     setUploadFile(file)
-    setUploadStatus(2)
-    const uploadSuccess: boolean = await upload(file)
-    setUploadStatus(uploadSuccess ? 1 : -1)
+    setUploadStatus(1)
+    setStatus('开始上传吧！')
   }
 
-  const pause = () => {}
+  const handleStartUpload = async (): Promise<void> => {
+    setUploadStatus(2)
+    const uploadSuccess: boolean = await upload(uploadFile!)
+    setUploadStatus(uploadSuccess ? 1 : 4)
+    if (uploadSuccess) {
+      setUploadFile(undefined)
+      setRequestPool(undefined)
+      setCalcHashRatio(0)
+      setUploadStatus(6)
+    }
+  }
 
-  const goOn = () => {}
+  const pause = () => {
+    console.log('requestPool', requestPool)
+    requestPool!.pause()
+    setUploadStatus(3)
+  }
+
+  const goOn = () => {
+    requestPool!.continue()
+    setUploadStatus(5)
+  }
 
   const uploadActionMap: any = {
     '-1': {
       label: '重新上传',
-      action: () => upload(uploadFile!)
+      action: () => handleStartUpload()
+    },
+    '1': {
+      label: '上传',
+      action: () => handleStartUpload()
     },
     '2': {
+      label: '处理中...',
+      action: () => {}
+    },
+    '5': {
       label: '暂停',
       action: () => pause()
     },
@@ -152,7 +218,7 @@ export default function Uploader() {
   }
 
   return (
-    <div>
+    <div className="flex flex-col space-y-8">
       <label htmlFor="uploader">
         <input
           type="file"
@@ -161,20 +227,20 @@ export default function Uploader() {
           multiple
         />
       </label>
-      {uploadFile && (
-        <>
-          <p>{uploadFile.name}</p>
-          <p>{status}</p>
-          <Progress ratio={calcHashRatio} />
-        </>
-      )}
+      <p>{status}</p>
       {uploadActionMap[uploadStatus] && (
         <button
-          className="border-white border-2 px-2 py -1"
+          className="border-white border-2 rounded-full px-2 py-1 w-28"
           onClick={uploadActionMap[uploadStatus].action}
         >
           {uploadActionMap[uploadStatus].label}
         </button>
+      )}
+      {uploadFile && (
+        <>
+          <Progress ratio={calcHashRatio} />
+          <p>{uploadFile.name}</p>
+        </>
       )}
     </div>
   )

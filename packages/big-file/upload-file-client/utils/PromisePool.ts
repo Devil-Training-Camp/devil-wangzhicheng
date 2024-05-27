@@ -1,5 +1,6 @@
 interface PromisePoolProps {
   limit: number
+  onTick?: (percentage: number) => void
 }
 
 type Task = () => Promise<any>
@@ -10,16 +11,19 @@ export default class Props {
   private queue: Array<() => void>
   private result: any[]
   private pauseSignal: boolean
+  private onTick?: (percentage: number) => void
+  private taskNumber: number = 0
 
-  constructor({ limit }: PromisePoolProps) {
+  constructor({ limit, onTick }: PromisePoolProps) {
     this.limit = limit
     this.queue = []
     this.activeTask = 0
     this.result = []
     this.pauseSignal = false
+    this.onTick = onTick
   }
 
-  async run(task: Task): Promise<any> {
+  async run(task: Task): Promise<void> {
     if (this.activeTask >= this.limit) {
       // 等待队列中的resolve被执行了才会执行task
       await new Promise<void>((resolve: () => void) => this.queue.push(resolve))
@@ -28,13 +32,14 @@ export default class Props {
 
     let res: any
     try {
-      // TODO: 执行成功fulfilled，执行错误reject
       res = await task()
       this.result.push(res)
-      return res
+    } catch (e) {
+      this.result.push(e)
     } finally {
+      this.onTick && this.onTick(this.result.length / this.taskNumber)
       --this.activeTask
-      if (this.queue.length) {
+      if (this.queue.length && !this.pauseSignal) {
         const resolve = this.queue.shift()!
         resolve()
       }
@@ -42,7 +47,10 @@ export default class Props {
   }
 
   async all(tasks: Task[]): Promise<any[]> {
-    await Promise.all(tasks.map((task: Task) => this.run(task)))
+    if (Array.isArray(tasks) && tasks.length > 0) {
+      this.taskNumber = tasks.length
+      await Promise.all(tasks.map((task: Task) => this.run(task)))
+    }
     return this.result
   }
 
@@ -52,5 +60,13 @@ export default class Props {
 
   continue(): void {
     this.pauseSignal = false
+    if (this.queue.length && !this.pauseSignal) {
+      const resolve = this.queue.shift()!
+      resolve()
+    }
+  }
+
+  getResult(): any[] {
+    return this.result
   }
 }
