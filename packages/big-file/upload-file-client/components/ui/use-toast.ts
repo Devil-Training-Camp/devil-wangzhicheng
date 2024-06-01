@@ -5,7 +5,9 @@ import * as React from 'react'
 
 import type { ToastActionElement, ToastProps } from '@/components/ui/toast'
 
+// 这个文件写的很不错，整体风格非常好，我个人很喜欢
 const TOAST_LIMIT = 1
+// 这个时间是啥意思？为什么是这个数字？
 const TOAST_REMOVE_DELAY = 1000000
 
 type ToasterToast = ToastProps & {
@@ -15,6 +17,7 @@ type ToasterToast = ToastProps & {
   action?: ToastActionElement
 }
 
+// 这里应该是 ts 的枚举?
 const actionTypes = {
   ADD_TOAST: 'ADD_TOAST',
   UPDATE_TOAST: 'UPDATE_TOAST',
@@ -60,6 +63,9 @@ const addToRemoveQueue = (toastId: string) => {
     return
   }
 
+  // 这种 setTimeout 的逻辑，我感觉可以改成 promise 风格
+  // const wait = (time: number) => new Promise((resolve) => setTimeout(resolve, time))
+  // 比回调风格会清晰很多
   const timeout = setTimeout(() => {
     toastTimeouts.delete(toastId)
     dispatch({
@@ -139,6 +145,7 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, 'id'>
 
+// 尽可能用箭头函数吧，减少使用 function 风格
 function toast({ ...props }: Toast) {
   const id = genId()
 
