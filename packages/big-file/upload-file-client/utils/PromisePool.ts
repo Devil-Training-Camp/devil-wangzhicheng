@@ -41,6 +41,7 @@ export default class Props {
       this.onTick && this.onTick(this.result.length / this.taskNumber)
       --this.activeTask
       if (this.queue.length && !this.pauseSignal) {
+        // 这个 queue 的设计没太看懂，可否展开聊聊呢？
         const resolve = this.queue.shift()!
         resolve()
       }
@@ -62,6 +63,7 @@ export default class Props {
   continue(): void {
     this.pauseSignal = false
     if (this.queue.length && !this.pauseSignal) {
+      // 啥意思？直接 resolve？
       const resolve = this.queue.shift()!
       resolve()
     }
