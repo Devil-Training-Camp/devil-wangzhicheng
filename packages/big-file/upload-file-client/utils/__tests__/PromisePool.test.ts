@@ -3,6 +3,7 @@ import PromisePool from '../PromisePool'
 import { sleep } from '../'
 
 const quickTask = () => {
+  // 单测的时候不要依赖真实环境，同样应该 mock 掉
   return new Promise((resolve) => {
     setTimeout(resolve, 100, 'quick')
   })
@@ -18,6 +19,7 @@ const slowTask = () => {
   })
 }
 
+// 单测很不错
 test('添加任务，任务列表', () => {
   try {
     const pool = new PromisePool({ limit: 3 })
@@ -25,6 +27,7 @@ test('添加任务，任务列表', () => {
     pool.run(mediumTask)
     const taskList = [slowTask, quickTask, slowTask, mediumTask]
     pool.all(taskList)
+    // 这是，在搞啥？
     expect(true).toBe(true)
   } catch {
     expect(false).toBe(false)

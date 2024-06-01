@@ -8,6 +8,7 @@ import {
 } from '@/utils/file'
 import { calcHash, calcChunksHash } from '@/utils/hash'
 import { checkFileExists, mergeFile } from '@/api/uploadFile'
+// 文件名应该统一，用类似的命名规则
 import IndexedDBStorage from '@/utils/IndexedDBStorage'
 import FileStorage from '@/utils/FileStorage'
 import { useState } from 'react'
@@ -19,6 +20,7 @@ import { sleep } from '@/utils'
 // TODO 多文件
 // TODO 测试重传
 
+// 这个文件太长了，拆一下
 export default function Uploader() {
   const [status, setStatus] = useState<string>()
   const [calcHashRatio, setCalcHashRatio] = useState<number>(0)
@@ -59,6 +61,7 @@ export default function Uploader() {
         hash,
         isChunk: false
       })
+      // 你的服务端接口一直返回 200 的呢
       if (code !== 200) {
         setStatus('上传失败')
         return false
@@ -74,6 +77,7 @@ export default function Uploader() {
     /**
      * step 3: 计算每个切片的哈希，保存到本地。如果切片哈希已经保存在本地，直接取出来
      */
+    // 这些 setp1/2 啥的都应抽出去，别耦合在一个文件
     let hashChunks: HashPiece[]
     const fs: FileStorage<string, HashPiece[]> = new IndexedDBStorage<
       string,
@@ -227,6 +231,8 @@ export default function Uploader() {
           multiple
         />
       </label>
+      {/* 这看起来不支持多文件并发上传 */}
+      {/* 改一下吧 */}
       <p>{status}</p>
       {uploadActionMap[uploadStatus] && (
         <button

@@ -35,6 +35,7 @@ export default class Props {
       res = await task()
       this.result.push(res)
     } catch (e) {
+      // ？不区分正确错误，统一推进去? 这明显不合理呀
       this.result.push(e)
     } finally {
       this.onTick && this.onTick(this.result.length / this.taskNumber)

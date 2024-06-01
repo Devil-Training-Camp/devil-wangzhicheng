@@ -56,10 +56,12 @@ export const uploadChunk = async (ctx: Context): Promise<void> => {
     return
   }
   ctx.body = {
+    // 这些错误应该也要写成 ts 的枚举值
     code: 10001,
     data: null,
     message: '文件写入失败'
   }
+  // 错误之后还 200？不对吧？
   ctx.status = 200
 }
 
@@ -90,6 +92,9 @@ export const mergeFile = async (ctx: Context): Promise<void> => {
       })
     )
     const buffer = Buffer.concat(buffers)
+    // 批量读，批量写；文件体积比较大的时候，可能会有性能问题
+    // 或者内存爆栈问题
+    // 这里推荐用 stream api
     await fsPromises.writeFile(targetFilename, buffer)
 
     ctx.body = {
@@ -103,6 +108,7 @@ export const mergeFile = async (ctx: Context): Promise<void> => {
     try {
       await Promise.all(
         params.chunks.map((chunk) => {
+          // 这个函数执行了两遍 getFilename 循环调用，这是不合理的
           const sourceFilename = path.join(
             UPLOAD_FOLDER_PATH,
             getFilename({
@@ -121,6 +127,7 @@ export const mergeFile = async (ctx: Context): Promise<void> => {
       data: null,
       message: '文件合并失败'
     }
+    // 为什么这些错误的情况都返回 200？
     ctx.status = 200
   }
 }

@@ -26,6 +26,7 @@ export function calcHash({ chunks, onTick }: CalcHashParams): Promise<string> {
 }
 
 // 计算每个分片的哈希值
+// 需要单独计算每一个分片的 hash吗？这样性能岂不是很慢？
 export function calcChunksHash({
   chunks,
   onTick

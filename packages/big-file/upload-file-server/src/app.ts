@@ -8,6 +8,8 @@ const app: Koa = new Koa()
 app.use(logger())
 // 设置跨域
 app.use(async (ctx: Context, next: Next) => {
+  // 这也明显是非常不合理的动作
+  // 生产环境下对所有域都支持跨域，不安全啊
   ctx.set('Access-Control-Allow-Origin', '*')
   ctx.set('Access-Control-Allow-Headers', '*')
   ctx.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')

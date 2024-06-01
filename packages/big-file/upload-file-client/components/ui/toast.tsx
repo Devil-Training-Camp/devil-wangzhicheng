@@ -7,6 +7,7 @@ import { X } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
+// 这里拆解代码的方式也挺好的，比耦合在一坨函数里好很多
 const ToastProvider = ToastPrimitives.Provider
 
 const ToastViewport = React.forwardRef<
@@ -16,6 +17,7 @@ const ToastViewport = React.forwardRef<
   <ToastPrimitives.Viewport
     ref={ref}
     className={cn(
+      // tailwind 的处理方式很不错，我喜欢
       'fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]',
       className
     )}
