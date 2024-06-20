@@ -25,6 +25,10 @@ export default class LocalFileStorage {
       console.error(`不存在文件夹${this.path}，开始创建...`)
       // 这是一个非常不好的实践，try-catch 里面居然还包含 try-catch？
       // 想办法优化一下
+      /**
+       * 疑问：
+       * 这里文件夹不存在的时候catch，创建文件夹，应该怎么优化？！
+       */
       try {
         await fsPromises.mkdir(this.path)
         console.log('创建文件夹成功')
@@ -38,7 +42,7 @@ export default class LocalFileStorage {
     // isExist 应该是很纯净的函数，不应该有副作用
     // 这里一进来就 creteDir，明显不合适啊
     /**
-     * 优化
+     * 优化：
      * 添加init函数，初始化文件夹
      */
     try {

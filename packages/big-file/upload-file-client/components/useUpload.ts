@@ -8,22 +8,21 @@ import PromisePool from '@/utils/PromisePool'
 import { RETRY } from '@/const'
 import { sleep } from '@/utils'
 
-const useUpload = (): {
-  upload: (file: File) => Promise<boolean>
-  status: string | undefined
-  setStatus: Dispatch<SetStateAction<string | undefined>>
+const useUpload = (
+  file: File
+): {
+  upload: () => Promise<boolean>
+  status: string
+  setStatus: Dispatch<SetStateAction<string>>
   calcHashRatio: number
   setCalcHashRatio: Dispatch<SetStateAction<number>>
-  uploadFile: File | undefined
-  setUploadFile: Dispatch<SetStateAction<File | undefined>>
   requestPool: PromisePool | undefined
   setRequestPool: Dispatch<SetStateAction<PromisePool | undefined>>
   uploadStatus: number
   setUploadStatus: Dispatch<SetStateAction<number>>
 } => {
-  const [status, setStatus] = useState<string>()
+  const [status, setStatus] = useState<string>('')
   const [calcHashRatio, setCalcHashRatio] = useState<number>(0)
-  const [uploadFile, setUploadFile] = useState<File>()
   const [requestPool, setRequestPool] = useState<PromisePool>()
   /**
    * -1 上传失败
@@ -35,7 +34,7 @@ const useUpload = (): {
    * 5 上传中，可暂停
    * 6 上传中，合并文件
    */
-  const [uploadStatus, setUploadStatus] = useState<number>(0)
+  const [uploadStatus, setUploadStatus] = useState<number>(1)
 
   const upload = async (): Promise<boolean> => {
     /**
@@ -46,7 +45,7 @@ const useUpload = (): {
      * step 2 检查服务器是否存在文件，文件存在直接上传成功
      */
     const { data: checkData, code: checkCode } = await checkFileExists({
-      name: uploadFile!.name
+      name: file.name
     })
     // 你的服务端接口一直返回 200 的呢
     /**
@@ -69,7 +68,7 @@ const useUpload = (): {
     setUploadStatus(5)
     const uploadChunksRes: boolean = await uploadChunks(
       fileChunks,
-      uploadFile!.name,
+      file.name,
       0,
       hash
     )
@@ -83,7 +82,7 @@ const useUpload = (): {
      */
     setUploadStatus(6)
     const { code, message } = await mergeFile({
-      name: uploadFile!.name,
+      name: file.name,
       hash,
       chunks: fileChunks.map((chunk, index) => ({
         index,
@@ -105,7 +104,7 @@ const useUpload = (): {
     setStatus('开始上传...')
     let fileChunks: FilePiece[]
     let hash: string
-    const filename = uploadFile!.name
+    const filename = file.name
     const fs: FileStorage<string, StorageFilePieces> = new IndexedDBStorage<
       string,
       StorageFilePieces
@@ -116,7 +115,7 @@ const useUpload = (): {
       ;({ fileChunks, hash } = await fs.get(filename))
     } else {
       // 切片不存在，计算
-      fileChunks = splitFile(uploadFile!)
+      fileChunks = splitFile(file)
       hash = await calcHash({
         chunks: fileChunks,
         onTick: (percentage: number): void => {
@@ -210,8 +209,6 @@ const useUpload = (): {
     setStatus,
     calcHashRatio,
     setCalcHashRatio,
-    uploadFile,
-    setUploadFile,
     requestPool,
     setRequestPool,
     uploadStatus,
