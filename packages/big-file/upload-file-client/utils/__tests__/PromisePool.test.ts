@@ -20,20 +20,6 @@ const slowTask = () => {
 }
 
 // 单测很不错
-test('添加任务，任务列表', () => {
-  try {
-    const pool = new PromisePool({ limit: 3 })
-    pool.run(quickTask)
-    pool.run(mediumTask)
-    const taskList = [slowTask, quickTask, slowTask, mediumTask]
-    pool.all(taskList)
-    // 这是，在搞啥？
-    expect(true).toBe(true)
-  } catch {
-    expect(false).toBe(false)
-  }
-})
-
 test('执行任务', async () => {
   const taskList = [slowTask, quickTask, slowTask, mediumTask]
   const pool = new PromisePool({ limit: 2 })

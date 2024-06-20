@@ -1,5 +1,3 @@
-import type { FileHashRequestParams } from '../../types'
-
 /**
  * 文件格式：完整：文件名_hash.后缀
  *       chunk： 文件名_hash
@@ -8,7 +6,11 @@ export const getFilename = ({
   name,
   hash,
   isChunk
-}: FileHashRequestParams): string => {
+}: {
+  name: string
+  hash: string
+  isChunk: boolean
+}): string => {
   if (isChunk) {
     return hash
   }

@@ -1,6 +1,6 @@
 import request from './index'
 import {
-  FileHashRequestParams,
+  CheckFileExistsRequestParams,
   FileHashResponseParams,
   FileMergeRequestParams,
   ResponseParams
@@ -8,7 +8,7 @@ import {
 
 // 判断文件是否存在服务器上
 export const checkFileExists = (
-  params: FileHashRequestParams
+  params: CheckFileExistsRequestParams
 ): Promise<ResponseParams<FileHashResponseParams>> => {
   return request.get(`/files/checkFileExists`, { params })
 }

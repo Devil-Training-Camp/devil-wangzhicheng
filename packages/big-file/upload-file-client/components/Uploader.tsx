@@ -1,171 +1,31 @@
 'use client'
 
-import {
-  type FilePiece,
-  type HashPiece,
-  pieceRequestHandler,
-  splitFile
-} from '@/utils/file'
-import { calcHash, calcChunksHash } from '@/utils/hash'
-import { checkFileExists, mergeFile } from '@/api/uploadFile'
-// 文件名应该统一，用类似的命名规则
-import IndexedDBStorage from '@/utils/IndexedDBStorage'
-import FileStorage from '@/utils/FileStorage'
-import { useState } from 'react'
 import Progress from '@/components/Progress'
-import PromisePool from '@/utils/PromisePool'
-import { RETRY } from '@/const'
-import { sleep } from '@/utils'
-
-// TODO 多文件
-// TODO 测试重传
+import useUpload from '@/components/useUpload'
 
 // 这个文件太长了，拆一下
+/**
+ * 优化:
+ * 上传拆解到useUpload.ts中
+ */
+
 export default function Uploader() {
-  const [status, setStatus] = useState<string>()
-  const [calcHashRatio, setCalcHashRatio] = useState<number>(0)
-  const [uploadFile, setUploadFile] = useState<File>()
-  const [requestPool, setRequestPool] = useState<PromisePool>()
-  /**
-   * -1 上传失败
-   * 0 未有文件
-   * 1 未开始上传
-   * 2 上传中，本地处理
-   * 3 暂停中
-   * 4 上传成功
-   * 5 上传中，可暂停
-   * 6 上传中，合并文件
-   */
-  const [uploadStatus, setUploadStatus] = useState<number>(0)
+  // 文件上传
+  const {
+    upload,
+    status,
+    setStatus,
+    calcHashRatio,
+    setCalcHashRatio,
+    uploadFile,
+    setUploadFile,
+    requestPool,
+    setRequestPool,
+    uploadStatus,
+    setUploadStatus
+  } = useUpload()
 
-  const upload = async (file: File): Promise<boolean> => {
-    /**
-     * step 1: 计算文件哈希
-     */
-    setStatus('开始上传...')
-    const fileChunks: FilePiece[] = splitFile(file)
-    const hash: string = await calcHash({
-      chunks: fileChunks,
-      onTick: (percentage: number): void => {
-        setCalcHashRatio(Number(percentage.toFixed(2)))
-        setStatus(`计算文件哈希中：${Math.floor(percentage * 100)}%`)
-      }
-    })
-
-    /**
-     * step 2 检查服务器是否存在文件，文件存在直接上传成功
-     */
-    try {
-      const { data, code } = await checkFileExists({
-        name: file.name,
-        hash,
-        isChunk: false
-      })
-      // 你的服务端接口一直返回 200 的呢
-      if (code !== 200) {
-        setStatus('上传失败')
-        return false
-      }
-      if (data.isExist) {
-        setStatus('上传成功（秒传）')
-        return true
-      }
-    } catch {
-      return false
-    }
-
-    /**
-     * step 3: 计算每个切片的哈希，保存到本地。如果切片哈希已经保存在本地，直接取出来
-     */
-    // 这些 setp1/2 啥的都应抽出去，别耦合在一个文件
-    let hashChunks: HashPiece[]
-    const fs: FileStorage<string, HashPiece[]> = new IndexedDBStorage<
-      string,
-      HashPiece[]
-    >('bigFile', 'hashChunk', 'hash', 'hash')
-    if (await fs.isExist(hash)) {
-      hashChunks = await fs.get(hash)
-    } else {
-      hashChunks = await calcChunksHash({
-        chunks: fileChunks,
-        onTick: (percentage: number): void => {
-          setCalcHashRatio(Number(percentage.toFixed(2)))
-          setStatus(`文件切片中：${Math.floor(percentage * 100)}%`)
-        }
-      })
-      await fs.save(hash, hashChunks)
-    }
-
-    /**
-     * step 4: 创建并发池，上传切片
-     */
-    setStatus('上传中...')
-    setUploadStatus(5)
-    const uploadChunks = async (
-      hashChunks: HashPiece[],
-      filename: string,
-      retry: number = 0
-    ): Promise<boolean> => {
-      const requests = hashChunks.map(
-        (chunk: HashPiece) => () => pieceRequestHandler(chunk, filename)
-      )
-      // 创建请求池，设置最大同时请求数
-      const requestPool = new PromisePool({
-        limit: 5,
-        onTick: (percentage: number): void => {
-          setCalcHashRatio(Number(percentage.toFixed(2)))
-          setStatus(`文件上传中：${Math.floor(percentage * 100)}%`)
-        }
-      })
-      setRequestPool(requestPool)
-      const piecesUpload: boolean[] = await requestPool.all(requests)
-      console.log('上传结果', piecesUpload)
-
-      if (!piecesUpload.every(Boolean)) {
-        if (retry >= RETRY) {
-          return false
-        }
-        console.log('重传次数：', retry)
-        const retryHashChunks = hashChunks.filter(
-          (undefined, index: number) => !piecesUpload[index]
-        )
-        await sleep(3000)
-        return uploadChunks(retryHashChunks, filename, ++retry)
-      }
-      return true
-    }
-    const uploadChunksRes: boolean = await uploadChunks(hashChunks, file.name)
-    if (!uploadChunksRes) {
-      setStatus(`上传失败`)
-      return false
-    }
-
-    /**
-     * step 5：合并文件
-     */
-    setUploadStatus(6)
-    try {
-      const { code } = await mergeFile({
-        name: file.name,
-        hash,
-        chunks: hashChunks.map((chunk, index) => ({
-          hash: chunk.hash,
-          index,
-          size: chunk.size
-        }))
-      })
-      if (code !== 200) {
-        setStatus('上传失败')
-        return false
-      }
-      setStatus('上传成功')
-      return true
-    } catch {
-      setStatus('上传失败')
-      return false
-    }
-  }
-
+  // 选择文件时
   const handleFileSelect = async (
     e: React.ChangeEvent<HTMLInputElement>
   ): Promise<void> => {
@@ -175,6 +35,7 @@ export default function Uploader() {
     setStatus('开始上传吧！')
   }
 
+  // 开始上传时
   const handleStartUpload = async (): Promise<void> => {
     setUploadStatus(2)
     const uploadSuccess: boolean = await upload(uploadFile!)
@@ -187,25 +48,28 @@ export default function Uploader() {
     }
   }
 
-  const pause = () => {
+  // 暂停时
+  const handlePause = () => {
     console.log('requestPool', requestPool)
     requestPool!.pause()
     setUploadStatus(3)
   }
 
-  const goOn = () => {
+  // 继续上传时
+  const handleGoOn = () => {
     requestPool!.continue()
     setUploadStatus(5)
   }
 
+  // 上传状态表
   const uploadActionMap: any = {
     '-1': {
       label: '重新上传',
-      action: () => handleStartUpload()
+      action: handleStartUpload
     },
     '1': {
       label: '上传',
-      action: () => handleStartUpload()
+      action: handleStartUpload
     },
     '2': {
       label: '处理中...',
@@ -213,11 +77,11 @@ export default function Uploader() {
     },
     '5': {
       label: '暂停',
-      action: () => pause()
+      action: handlePause
     },
     '3': {
       label: '继续',
-      action: () => goOn()
+      action: handleGoOn
     }
   }
 

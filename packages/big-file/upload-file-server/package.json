@@ -16,10 +16,7 @@
     "koa": "~2.15.3",
     "@koa/router": "~12.0.1",
     "koa-logger": "~3.2.1",
-    "koa-body": "~6.0.1",
-    // 代码里面并没有依赖这个 client
-    // 删掉依赖吧
-    "@big-file/upload-file-client": "workspace:*"
+    "koa-body": "~6.0.1"
   },
   "devDependencies": {
     "typescript": "^5",

@@ -1,4 +1,3 @@
-// import FileStorage from '@big-file/upload-file-client/utils/FileStorage'
 import * as fsPromises from 'node:fs/promises'
 import * as path from 'node:path'
 import { UPLOAD_FOLDER_PATH } from '@src/utils/constant'
@@ -11,8 +10,11 @@ export default class LocalFileStorage {
   private readonly path: string
 
   constructor({ path }: LocalFileStorageParams) {
-    // super()
     this.path = path
+  }
+
+  public async init() {
+    await this.createDir()
   }
 
   // 创建文件夹
@@ -32,15 +34,13 @@ export default class LocalFileStorage {
     }
   }
 
-  public get(key: String): Promise<Blob> {
-    // 啥意思？持续返回 undefined？
-    return Promise.resolve(undefined!)
-  }
-
   public async isExist(filename: string): Promise<boolean> {
     // isExist 应该是很纯净的函数，不应该有副作用
     // 这里一进来就 creteDir，明显不合适啊
-    await this.createDir()
+    /**
+     * 优化
+     * 添加init函数，初始化文件夹
+     */
     try {
       await fsPromises.access(path.join(this.path, filename))
       return true

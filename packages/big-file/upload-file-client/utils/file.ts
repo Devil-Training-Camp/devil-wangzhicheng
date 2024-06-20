@@ -6,7 +6,8 @@ export interface FilePiece {
   size: number
 }
 
-export interface HashPiece extends FilePiece {
+export interface StorageFilePieces {
+  fileChunks: FilePiece[]
   hash: string
 }
 
@@ -24,39 +25,4 @@ export function splitFile(
     })
   }
   return fileChunks
-}
-
-/**
- * 上传切片请求函数，先检查后上传
- * @param hashChunk
- * @param filename
- */
-export async function pieceRequestHandler(
-  hashChunk: HashPiece,
-  filename: string
-): Promise<boolean> {
-  // 检查切片是否存在
-  try {
-    const { data: checkData, code: checkCode } = await checkFileExists({
-      name: filename,
-      hash: hashChunk.hash,
-      isChunk: true
-    })
-    if (checkCode !== 200) {
-      return false
-    }
-    if (checkData.isExist) {
-      return true
-    }
-
-    // 上传切片
-    const formData = new FormData()
-    formData.append('name', filename)
-    formData.append('hash', hashChunk.hash)
-    formData.append('chunk', hashChunk.chunk)
-    const { code: uploadCode } = await uploadChunk(formData)
-    return uploadCode === 200
-  } catch {
-    return false
-  }
 }

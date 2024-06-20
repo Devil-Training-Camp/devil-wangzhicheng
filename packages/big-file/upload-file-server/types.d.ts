@@ -17,8 +17,8 @@ export interface FileMergeRequestParams extends FileBaseRequestParams {
 }
 
 // 判断文件是否存在
-export interface FileHashRequestParams extends FileBaseRequestParams {
-  isChunk: boolean
+export interface CheckFileExistsRequestParams {
+  name: string
 }
 
 export interface FileHashResponseParams {
@@ -27,7 +27,6 @@ export interface FileHashResponseParams {
 
 // 上传文件信息
 interface ChunkInfo {
-  hash: string
   index: number
   size: number
 }

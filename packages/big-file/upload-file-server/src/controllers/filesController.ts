@@ -2,49 +2,41 @@ import { Context } from 'koa'
 import LocalFileStorage from '@src/utils/LocalFileStorage'
 import { UPLOAD_FOLDER_PATH } from '@src/utils/constant'
 import type {
-  FileHashRequestParams,
-  FileHashResponseParams,
-  FileMergeRequestParams,
-  ResponseParams
+  CheckFileExistsRequestParams,
+  FileMergeRequestParams
 } from '../../types'
-import { getFilename } from '@src/utils/files'
 import * as path from 'node:path'
 import fsPromises from 'node:fs/promises'
+import * as console from 'node:console'
 
 // 检查文件是否存在
+/**
+ * 切片文件名 hash-$index
+ */
 export const checkFileExists = async (ctx: Context): Promise<void> => {
-  const params: FileHashRequestParams = {
-    name: ctx.request.query.name as string,
-    hash: ctx.request.query.hash as string,
-    isChunk: ctx.request.query.isChunk === 'true'
+  const params: CheckFileExistsRequestParams = {
+    name: ctx.request.query.name as string
   }
-  const fileName = getFilename(params)
   const fs = new LocalFileStorage({ path: UPLOAD_FOLDER_PATH })
-  const isExist = await fs.isExist(fileName)
-  const res: ResponseParams<FileHashResponseParams> = {
+  await fs.init()
+  const isExist = await fs.isExist(params.name)
+  ctx.body = {
     code: 200,
     message: 'success',
     data: {
       isExist
     }
   }
-  ctx.body = res
   ctx.status = 200
 }
 
 // 上传切片到后端
 export const uploadChunk = async (ctx: Context): Promise<void> => {
-  const { name, hash }: { name: string; hash: string } = ctx.request.body
+  const { chunkName }: { chunkName: string } = ctx.request.body
 
   const fs = new LocalFileStorage({ path: UPLOAD_FOLDER_PATH })
-
-  const filenameParams: FileHashRequestParams = {
-    name: name as string,
-    hash: hash,
-    isChunk: true
-  }
-  const filename = getFilename(filenameParams)
-  const res: boolean = await fs.save(filename, ctx.request.files!.chunk)
+  await fs.init()
+  const res: boolean = await fs.save(chunkName, ctx.request.files!.chunk)
 
   if (res) {
     ctx.body = {
@@ -57,36 +49,28 @@ export const uploadChunk = async (ctx: Context): Promise<void> => {
   }
   ctx.body = {
     // 这些错误应该也要写成 ts 的枚举值
-    code: 10001,
+    /**
+     * 优化：
+     * 增加ErrorType枚举
+     */
+    code: ErrorType.FileWriteError,
     data: null,
     message: '文件写入失败'
   }
   // 错误之后还 200？不对吧？
-  ctx.status = 200
+  ctx.status = ErrorType.FileWriteError
 }
 
 //  合并文件
 export const mergeFile = async (ctx: Context): Promise<void> => {
   const params: FileMergeRequestParams = ctx.request.body
   try {
-    // TODO 错误类型
-    const targetFilename = path.join(
-      UPLOAD_FOLDER_PATH,
-      getFilename({
-        name: params.name,
-        hash: params.hash,
-        isChunk: false
-      })
-    )
+    const targetFilename = path.join(UPLOAD_FOLDER_PATH, params.name)
     const buffers: Buffer[] = await Promise.all(
       params.chunks.map((chunk) => {
         const sourceFilename = path.join(
           UPLOAD_FOLDER_PATH,
-          getFilename({
-            name: params.name,
-            hash: chunk.hash,
-            isChunk: true
-          })
+          `${params.hash}-$${chunk.index}`
         )
         return fsPromises.readFile(sourceFilename)
       })
@@ -95,6 +79,9 @@ export const mergeFile = async (ctx: Context): Promise<void> => {
     // 批量读，批量写；文件体积比较大的时候，可能会有性能问题
     // 或者内存爆栈问题
     // 这里推荐用 stream api
+    /**
+     * TODO 当初用stream api提示类型不符合才改用buffer的
+     */
     await fsPromises.writeFile(targetFilename, buffer)
 
     ctx.body = {
@@ -103,31 +90,32 @@ export const mergeFile = async (ctx: Context): Promise<void> => {
       message: '文件合并成功'
     }
     ctx.status = 200
-
-    // 删除分片
-    try {
-      await Promise.all(
-        params.chunks.map((chunk) => {
-          // 这个函数执行了两遍 getFilename 循环调用，这是不合理的
-          const sourceFilename = path.join(
-            UPLOAD_FOLDER_PATH,
-            getFilename({
-              name: params.name,
-              hash: chunk.hash,
-              isChunk: true
-            })
-          )
-          return fsPromises.unlink(sourceFilename)
-        })
-      )
-    } catch {}
   } catch (e) {
     ctx.body = {
-      code: 10002,
+      code: ErrorType.FileMergeError,
       data: null,
       message: '文件合并失败'
     }
     // 为什么这些错误的情况都返回 200？
-    ctx.status = 200
+    /**
+     * 优化：
+     * 增加FileMergeError
+     */
+    ctx.status = ErrorType.FileMergeError
+  }
+
+  // 删除分片
+  try {
+    await Promise.all(
+      params.chunks.map((chunk) => {
+        const sourceFilename = path.join(
+          UPLOAD_FOLDER_PATH,
+          `${params.hash}-$${chunk.index}`
+        )
+        return fsPromises.unlink(sourceFilename)
+      })
+    )
+  } catch (e) {
+    console.error('删除切片错误', e)
   }
 }
