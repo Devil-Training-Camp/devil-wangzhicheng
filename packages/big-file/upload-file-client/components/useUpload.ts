@@ -157,11 +157,11 @@ const useUpload = (
       }
     })
     setRequestPool(requestPool)
-    const piecesUpload: boolean[] = await requestPool.all(requests)
+    const piecesUpload = await requestPool.all(requests)
     console.log('上传结果', piecesUpload)
 
     // 重传
-    if (!piecesUpload.every(Boolean)) {
+    if (!piecesUpload.every((res) => res.state === 'fulfilled' && res.data)) {
       if (retry >= RETRY) {
         return false
       }

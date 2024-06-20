@@ -3,13 +3,18 @@ interface PromisePoolProps {
   onTick?: (percentage: number) => void
 }
 
+interface PromisePoolRes {
+  state: 'fulfilled' | 'rejected'
+  data: any
+}
+
 type Task = () => Promise<any>
 
-export default class Props {
+export default class PromisePool {
   private limit: number
   private activeTask: number
   private queue: Array<() => void>
-  private result: any[]
+  private result: PromisePoolRes[]
   private pauseSignal: boolean
   private onTick?: (percentage: number) => void
   private taskNumber: number = 0
@@ -33,10 +38,20 @@ export default class Props {
     let res: any
     try {
       res = await task()
-      this.result.push(res)
+      this.result.push({
+        state: 'fulfilled',
+        data: res
+      })
     } catch (e) {
       // ？不区分正确错误，统一推进去? 这明显不合理呀
-      this.result.push(e)
+      /**
+       * 优化：
+       * 设置返回的结构PromisePoolRes
+       */
+      this.result.push({
+        state: 'rejected',
+        data: e
+      })
     } finally {
       this.onTick && this.onTick(this.result.length / this.taskNumber)
       --this.activeTask
@@ -48,7 +63,7 @@ export default class Props {
     }
   }
 
-  async all(tasks: Task[]): Promise<any[]> {
+  async all(tasks: Task[]): Promise<PromisePoolRes[]> {
     if (Array.isArray(tasks) && tasks.length > 0) {
       this.taskNumber = tasks.length
       await Promise.all(tasks.map((task: Task) => this.run(task)))
