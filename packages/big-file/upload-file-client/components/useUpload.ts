@@ -112,6 +112,9 @@ const useUpload = (
 
     if (await fs.isExist(filename)) {
       // 切片如果已经存在，直接取出
+      // 哈，下面这句的调用方式好奇怪，
+      // ;()
+      // 啥意思？
       ;({ fileChunks, hash } = await fs.get(filename))
     } else {
       // 切片不存在，计算
@@ -169,6 +172,7 @@ const useUpload = (
       const retryHashChunks = fileChunks.filter(
         (undefined, index: number) => !piecesUpload[index]
       )
+      // sleep 3000 是啥意思？
       await sleep(3000)
       return uploadChunks(retryHashChunks, filename, ++retry, hash)
     }

@@ -1,5 +1,6 @@
 lockfileVersion: '6.0'
 
+# 我看外层已经用了 rush 了，为什么还会出现 pnpm-lock.yaml 文件的？
 settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false

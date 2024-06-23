@@ -31,6 +31,7 @@ export function calcChunksHash({
   chunks,
   onTick
 }: CalcHashParams): Promise<HashPiece[]> {
+  // 上下两个函数看起来一模一样？为什么要重复？
   return new Promise((resolve: (chunks: HashPiece[]) => void) => {
     const worker: Worker = new Worker(
       new URL('hashChunksWorker.ts', import.meta.url)

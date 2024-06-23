@@ -2,6 +2,7 @@ import { FilePiece, type HashPiece } from '@/utils/file'
 import SparkMD5 from 'spark-md5'
 import { readAsArrayBuffer } from '@/utils/hashWorker'
 
+// 这个跟旁边的 hashWorker.ts 文件看起来也很像，为什么要重复？
 onmessage = async (e: MessageEvent): Promise<void> => {
   const spark: SparkMD5.ArrayBuffer = new SparkMD5.ArrayBuffer()
   const chunks: FilePiece[] = e.data

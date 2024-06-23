@@ -28,6 +28,19 @@ export default class LocalFileStorage {
       /**
        * 疑问：
        * 这里文件夹不存在的时候catch，创建文件夹，应该怎么优化？！
+       * 解答：可以考虑把目录是否存在的判断再单独抽成一个函数，类似于：
+       const dirExist=(dir:string)=>{
+        try{
+          const stat=await fsPromises.access(this.path);
+          if(!stat){
+            return false;
+          }
+          return true;
+        }catch(e){
+            return false;
+        }
+      }
+      之后再你的代码中调用这个函数判断目录是否存在，就不用 try-catch 了
        */
       try {
         await fsPromises.mkdir(this.path)
@@ -36,6 +49,7 @@ export default class LocalFileStorage {
         console.error('创建文件夹失败', e)
       }
     }
+    
   }
 
   public async isExist(filename: string): Promise<boolean> {

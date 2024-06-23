@@ -66,6 +66,8 @@ export default class PromisePool {
   async all(tasks: Task[]): Promise<PromisePoolRes[]> {
     if (Array.isArray(tasks) && tasks.length > 0) {
       this.taskNumber = tasks.length
+      // 这看起来是 promise.all ，并没有并发限制的能力吧？
+      // 这不是全部都在执行了吗
       await Promise.all(tasks.map((task: Task) => this.run(task)))
     }
     return this.result

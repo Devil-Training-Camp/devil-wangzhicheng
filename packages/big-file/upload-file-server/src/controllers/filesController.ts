@@ -9,6 +9,8 @@ import * as path from 'node:path'
 import fsPromises from 'node:fs/promises'
 import * as console from 'node:console'
 
+// 这个模块里面的三个函数拆成三个文件吧，放在一起没太大必要
+
 // 检查文件是否存在
 /**
  * 切片文件名 hash-$index
@@ -81,6 +83,10 @@ export const mergeFile = async (ctx: Context): Promise<void> => {
     // 这里推荐用 stream api
     /**
      * TODO 当初用stream api提示类型不符合才改用buffer的
+     * 额，可以问问其他同学的实现，核心代码就几行：
+     * const writeStream = fs.createWriteStream(outputFile);
+     * const readStream = fs.createReadStream(inputFiles[currentIndex]);
+     * readStream.pipe(writeStream, { end: false });
      */
     await fsPromises.writeFile(targetFilename, buffer)
 

@@ -41,6 +41,7 @@ export default class IndexedDBStorage<K, T> extends FileStorage<K, T> {
           console.log('创建数据库成功')
         }
         this.request.onerror = (e: Event) => {
+          // error 的时候为什么不 reject 出去呢
           console.error('创建数据库失败')
         }
         this.request.onsuccess = (e: Event) => {
