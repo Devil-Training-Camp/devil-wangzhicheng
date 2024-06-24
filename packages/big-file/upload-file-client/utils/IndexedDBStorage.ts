@@ -24,7 +24,7 @@ export default class IndexedDBStorage<K, T> extends FileStorage<K, T> {
     return new Promise(
       (
         resolve: (opened: boolean) => void,
-        reject: (reason: DOMException | null) => void
+        reject: (reason: DOMException | Event | null) => void
       ) => {
         this.request = indexedDB.open(this.dbName, 1)
         this.request.onupgradeneeded = (e: IDBVersionChangeEvent) => {
@@ -42,7 +42,12 @@ export default class IndexedDBStorage<K, T> extends FileStorage<K, T> {
         }
         this.request.onerror = (e: Event) => {
           // error 的时候为什么不 reject 出去呢
+          /**
+           * 优化：
+           * 错误的时候reject
+           */
           console.error('创建数据库失败')
+          reject(e)
         }
         this.request.onsuccess = (e: Event) => {
           console.log('打开数据库成功')

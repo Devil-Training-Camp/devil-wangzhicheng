@@ -1,27 +1,23 @@
 import Router from '@koa/router'
-import {
-  checkFileExists,
-  uploadChunk,
-  mergeFile
-} from '@src/controllers/filesController'
+
 import { koaBody } from 'koa-body'
 import { UPLOAD_FOLDER_PATH } from '@src/utils/constant'
+import checkFileExistsController from '@src/controllers/checkFileExistsController'
+import uploadChunkController from '@src/controllers/uploadChunkController'
+import mergeFileController from '@src/controllers/mergeFileController'
 
 const router = new Router()
 
-router.get('/files/checkFileExists', checkFileExists)
+router.get('/files/checkFileExists', checkFileExistsController)
 
 router.post(
   '/files/uploadChunk',
   koaBody({
-    multipart: true,
-    formidable: {
-      uploadDir: UPLOAD_FOLDER_PATH
-    }
+    multipart: true
   }),
-  uploadChunk
+  uploadChunkController
 )
 
-router.post('/files/mergeFile', mergeFile)
+router.post('/files/mergeFile', mergeFileController)
 
 export default router

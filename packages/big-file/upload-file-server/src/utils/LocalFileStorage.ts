@@ -19,37 +19,34 @@ export default class LocalFileStorage {
 
   // 创建文件夹
   private async createDir(): Promise<void> {
-    try {
-      await fsPromises.access(this.path)
-    } catch (e) {
-      console.error(`不存在文件夹${this.path}，开始创建...`)
-      // 这是一个非常不好的实践，try-catch 里面居然还包含 try-catch？
-      // 想办法优化一下
-      /**
-       * 疑问：
-       * 这里文件夹不存在的时候catch，创建文件夹，应该怎么优化？！
-       * 解答：可以考虑把目录是否存在的判断再单独抽成一个函数，类似于：
-       const dirExist=(dir:string)=>{
-        try{
-          const stat=await fsPromises.access(this.path);
-          if(!stat){
-            return false;
-          }
-          return true;
-        }catch(e){
-            return false;
-        }
-      }
-      之后再你的代码中调用这个函数判断目录是否存在，就不用 try-catch 了
-       */
+    // 这是一个非常不好的实践，try-catch 里面居然还包含 try-catch？
+    // 想办法优化一下
+    /**
+     * 疑问：
+     * 这里文件夹不存在的时候catch，创建文件夹，应该怎么优化？！
+     * 解答：可以考虑把目录是否存在的判断再单独抽成一个函数，类似于：
+     const dirExist=(dir:string)=>{
+     try{
+     const stat=await fsPromises.access(this.path);
+     if(!stat){
+     return false;
+     }
+     return true;
+     }catch(e){
+     return false;
+     }
+     }
+     之后再你的代码中调用这个函数判断目录是否存在，就不用 try-catch 了
+     */
+    if (!(await this.pathExist(this.path))) {
       try {
         await fsPromises.mkdir(this.path)
         console.log('创建文件夹成功')
       } catch (e) {
         console.error('创建文件夹失败', e)
+        throw e
       }
     }
-    
   }
 
   public async isExist(filename: string): Promise<boolean> {
@@ -59,22 +56,25 @@ export default class LocalFileStorage {
      * 优化：
      * 添加init函数，初始化文件夹
      */
+    return this.pathExist(path.resolve(this.path, filename))
+  }
+
+  public async save(filename: string, file: any): Promise<void> {
     try {
-      await fsPromises.access(path.join(this.path, filename))
-      return true
-    } catch {
-      return false
+      const oldName = file.filepath
+      const newName: string = path.resolve(UPLOAD_FOLDER_PATH, filename)
+      await fsPromises.rename(oldName, newName)
+    } catch (e) {
+      console.error(`写入文件 ${filename} 失败：`, e)
+      throw e
     }
   }
 
-  public async save(filename: string, file: any): Promise<boolean> {
+  public async pathExist(path: string): Promise<boolean> {
     try {
-      const oldName = file.filepath
-      const newName = path.join(UPLOAD_FOLDER_PATH, filename)
-      await fsPromises.rename(oldName, newName)
+      await fsPromises.access(path)
       return true
-    } catch (e) {
-      console.error(`写入文件 ${filename} 失败：`, e)
+    } catch {
       return false
     }
   }

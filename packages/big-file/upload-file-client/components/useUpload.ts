@@ -6,8 +6,12 @@ import IndexedDBStorage from '@/utils/IndexedDBStorage'
 import { calcHash } from '@/utils/hash'
 import PromisePool from '@/utils/PromisePool'
 import { RETRY } from '@/const'
-import { sleep } from '@/utils'
 
+/**
+ * 疑问：
+ * 我感觉自己已经尽最大努力分解这个方法了
+ * 还有什么更好的优化方法
+ */
 const useUpload = (
   file: File
 ): {
@@ -115,6 +119,11 @@ const useUpload = (
       // 哈，下面这句的调用方式好奇怪，
       // ;()
       // 啥意思？
+      /**
+       * 解答：
+       * 1. 解构的方式赋值时，为了避免{}被解释成块，需要用()将整块语句包裹
+       * 2. ;是预防性编程，因为我这里是不加分号的，为了避免被当作函数调用的括号
+       */
       ;({ fileChunks, hash } = await fs.get(filename))
     } else {
       // 切片不存在，计算
@@ -173,7 +182,10 @@ const useUpload = (
         (undefined, index: number) => !piecesUpload[index]
       )
       // sleep 3000 是啥意思？
-      await sleep(3000)
+      /**
+       * 解释：
+       * 等3秒重传，现在感觉没必要，删除了await sleep(3000)
+       */
       return uploadChunks(retryHashChunks, filename, ++retry, hash)
     }
     return true

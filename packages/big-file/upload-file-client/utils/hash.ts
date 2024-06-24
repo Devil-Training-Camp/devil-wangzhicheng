@@ -1,4 +1,4 @@
-import { type FilePiece, type HashPiece } from '@/utils/file'
+import { type FilePiece } from '@/utils/file'
 
 export interface CalcHashParams {
   chunks: FilePiece[]
@@ -27,27 +27,8 @@ export function calcHash({ chunks, onTick }: CalcHashParams): Promise<string> {
 
 // 计算每个分片的哈希值
 // 需要单独计算每一个分片的 hash吗？这样性能岂不是很慢？
-export function calcChunksHash({
-  chunks,
-  onTick
-}: CalcHashParams): Promise<HashPiece[]> {
-  // 上下两个函数看起来一模一样？为什么要重复？
-  return new Promise((resolve: (chunks: HashPiece[]) => void) => {
-    const worker: Worker = new Worker(
-      new URL('hashChunksWorker.ts', import.meta.url)
-    )
-    worker.postMessage(chunks)
-    worker.onmessage = (e: MessageEvent) => {
-      const {
-        percentage,
-        hashChunks,
-        resolved
-      }: { percentage: number; hashChunks: HashPiece[]; resolved: boolean } =
-        e.data
-      onTick?.(percentage)
-      if (resolved) {
-        resolve(hashChunks)
-      }
-    }
-  })
-}
+// 上下两个函数看起来一模一样？为什么要重复？
+/**
+ * 优化：
+ * 用不到，删了
+ */
