@@ -1,7 +1,7 @@
 // 检查文件是否存在
 import { Context } from 'koa'
 import { CheckFileExistsRequestParams } from '../../types'
-import ErrorType from '@src/utils/error'
+import HError, { ErrorType } from '@src/utils/error'
 
 /**
  * 切片文件名 hash-$index
@@ -21,12 +21,7 @@ const checkFileExistsController = async (ctx: Context): Promise<void> => {
     }
     ctx.status = 200
   } catch {
-    ctx.body = {
-      code: ErrorType.FileCheckExistError,
-      message: 'failed',
-      data: null
-    }
-    ctx.status = 200
+    throw new HError(ErrorType.FileCheckExistError, '检查文件时发生错误')
   }
 }
 

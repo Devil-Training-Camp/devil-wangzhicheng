@@ -1,3 +1,5 @@
+import LocalFileStorage from '@src/utils/LocalFileStorage'
+
 // 返回通用结构
 export interface ResponseParams<T> {
   code: number
@@ -29,4 +31,10 @@ export interface FileHashResponseParams {
 interface ChunkInfo {
   index: number
   size: number
+}
+
+declare module 'koa' {
+  interface BaseContext {
+    localFs: LocalFileStorage
+  }
 }

@@ -1,14 +1,11 @@
 // 上传切片到后端
 import { Context } from 'koa'
-import { UPLOAD_FOLDER_PATH } from '@src/utils/constant'
-import LocalFileStorage from '@src/utils/LocalFileStorage'
-import ErrorType from '@src/utils/error'
+import HError, { ErrorType } from '@src/utils/error'
 
 const uploadChunkController = async (ctx: Context): Promise<void> => {
   try {
     const { chunkName }: { chunkName: string } = ctx.request.body
-
-    ctx.localFs.save(chunkName, ctx.request.files!.chunk)
+    await ctx.localFs.save(chunkName, ctx.request.files!.chunk)
 
     ctx.body = {
       code: 200,
@@ -17,22 +14,13 @@ const uploadChunkController = async (ctx: Context): Promise<void> => {
     }
     ctx.status = 200
   } catch {
-    ctx.body = {
-      // 这些错误应该也要写成 ts 的枚举值
-      /**
-       * 优化：
-       * 增加ErrorType枚举
-       */
-      code: ErrorType.FileWriteError,
-      data: null,
-      message: '文件写入失败'
-    }
+    // 这些错误应该也要写成 ts 的枚举值
     // 错误之后还 200？不对吧？
     /**
      * 优化：
-     * 增加ErrorType枚举
+     * 添加错误处理中间件
      */
-    ctx.status = 200
+    throw new HError(ErrorType.FileWriteError, '写入文件时发生错误')
   }
 }
 

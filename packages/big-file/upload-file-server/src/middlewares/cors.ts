@@ -1,7 +1,7 @@
-import { Context, Next } from 'koa'
+import { Context, Middleware, Next } from 'koa'
 import process from 'node:process'
 
-const cors = () => {
+const cors = (): Middleware => {
   return async (ctx: Context, next: Next) => {
     // 这也明显是非常不合理的动作
     // 生产环境下对所有域都支持跨域，不安全啊

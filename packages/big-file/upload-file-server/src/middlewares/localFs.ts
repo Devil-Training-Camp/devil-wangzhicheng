@@ -1,8 +1,8 @@
 import LocalFileStorage from '@src/utils/LocalFileStorage'
 import { UPLOAD_FOLDER_PATH } from '@src/utils/constant'
-import { Context, Next } from 'koa'
+import { Context, Middleware, Next } from 'koa'
 
-const localFs = () => {
+const localFs = (): Middleware => {
   const fs: LocalFileStorage = new LocalFileStorage({
     path: UPLOAD_FOLDER_PATH
   })

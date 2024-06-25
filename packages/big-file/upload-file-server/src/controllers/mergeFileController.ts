@@ -4,8 +4,8 @@ import { ChunkInfo, FileMergeRequestParams } from '../../types'
 import { UPLOAD_FOLDER_PATH } from '@src/utils/constant'
 import * as path from 'node:path'
 import MergeFile, { MergeSource } from '@src/utils/MergeFile'
-import ErrorType from '@src/utils/error'
 import fsPromise from 'node:fs/promises'
+import HError, { ErrorType } from '@src/utils/error'
 
 // 合并文件
 const mergeChunks = async (params: FileMergeRequestParams): Promise<void> => {
@@ -59,23 +59,14 @@ const mergeFileController = async (ctx: Context): Promise<void> => {
       message: '文件合并成功'
     }
     ctx.status = 200
-  } catch (e) {
-    ctx.body = {
-      code: ErrorType.FileMergeError,
-      data: null,
-      message: '文件合并失败'
-    }
+  } catch {
+    throw new HError(ErrorType.FileMergeError, '文件合并失败')
     // 为什么这些错误的情况都返回 200？
     /**
      * 解释：
      * 我想的是用自定义的body.code代表不同的错误
      * ctx.status都是默认的状态
      */
-    /**
-     * 优化：
-     * 增加FileMergeError
-     */
-    ctx.status = 200
   }
 }
 
