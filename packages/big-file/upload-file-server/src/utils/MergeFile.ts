@@ -1,11 +1,8 @@
 import { pipeline } from 'node:stream/promises'
 import * as fs from 'node:fs'
-import { PassThrough } from 'stream'
 
 export interface MergeSource {
   source: string
-  index: number
-  size: number
 }
 
 interface MergeFileParams {
@@ -24,28 +21,20 @@ export default class MergeFile {
 
   public async merge(): Promise<void> {
     const writeStream: fs.WriteStream = fs.createWriteStream(this.target)
-    const passThroughStreams: PassThrough[] = this.sources.map(
-      () => new PassThrough()
-    )
+    writeStream.setMaxListeners(this.sources.length)
 
     try {
-      const pipelinePromises: Promise<void>[] = this.sources.map(
-        (source: MergeSource, index: number) =>
-          pipeline(
-            fs.createReadStream(source.source),
-            passThroughStreams[index]
-          )
-      )
-
-      passThroughStreams.forEach((passThrough: PassThrough) =>
-        passThrough.pipe(writeStream, { end: false })
-      )
-
-      await Promise.all(pipelinePromises)
-
-      writeStream.end()
+      for (const source of this.sources) {
+        await pipeline(
+          fs.createReadStream(source.source, { start: 0 }),
+          writeStream,
+          { end: false }
+        )
+      }
     } catch (e) {
       throw e
+    } finally {
+      writeStream.end()
     }
   }
 }
