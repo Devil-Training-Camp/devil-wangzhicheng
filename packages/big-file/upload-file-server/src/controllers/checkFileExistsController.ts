@@ -11,10 +11,7 @@ const checkFileExistsController = async (ctx: Context): Promise<void> => {
   const params: CheckFileExistsRequestParams = {
     name: ctx.request.query.name as string
   }
-  const localFs: LocalFileStorage = new LocalFileStorage({
-    path: UPLOAD_FOLDER_PATH
-  })
-  const isExist = await localFs.isExist(params.name)
+  const isExist = await ctx.localFs.isExist(params.name)
   ctx.body = {
     code: 200,
     message: 'success',

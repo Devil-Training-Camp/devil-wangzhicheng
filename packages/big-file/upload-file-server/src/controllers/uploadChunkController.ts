@@ -8,11 +8,7 @@ const uploadChunkController = async (ctx: Context): Promise<void> => {
   try {
     const { chunkName }: { chunkName: string } = ctx.request.body
 
-    const localFs: LocalFileStorage = new LocalFileStorage({
-      path: UPLOAD_FOLDER_PATH
-    })
-    await localFs.init()
-    await localFs.save(chunkName, ctx.request.files!.chunk)
+    ctx.localFs.save(chunkName, ctx.request.files!.chunk)
 
     ctx.body = {
       code: 200,

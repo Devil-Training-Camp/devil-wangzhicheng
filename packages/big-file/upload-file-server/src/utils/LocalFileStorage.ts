@@ -8,13 +8,16 @@ interface LocalFileStorageParams {
 
 export default class LocalFileStorage {
   private readonly path: string
+  public isInited: boolean
 
   constructor({ path }: LocalFileStorageParams) {
     this.path = path
+    this.isInited = false
   }
 
   public async init() {
     await this.createDir()
+    this.isInited = true
   }
 
   // 创建文件夹
