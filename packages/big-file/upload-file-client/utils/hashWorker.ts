@@ -7,16 +7,13 @@ onmessage = async (e: MessageEvent): Promise<void> => {
   const chunks: FilePiece[] = e.data
 
   let cur: number = 0
-  let resolved: boolean = false
   while (cur < chunks?.length) {
     const chunk: FilePiece = chunks[cur]
     spark.append(await readAsArrayBuffer(chunk.chunk))
     const percentage: number = (cur + 1) / chunks.length
-    resolved = percentage === 1
     postMessage({
       percentage,
-      resolved,
-      hash: resolved ? spark.end() : undefined
+      hash: spark.end()
     })
     ++cur
   }

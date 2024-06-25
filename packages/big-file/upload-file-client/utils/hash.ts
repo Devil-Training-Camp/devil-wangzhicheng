@@ -11,13 +11,9 @@ export function calcHash({ chunks, onTick }: CalcHashParams): Promise<string> {
     const worker: Worker = new Worker(new URL('hashWorker.ts', import.meta.url))
     worker.postMessage(chunks)
     worker.onmessage = (e: MessageEvent) => {
-      const {
-        percentage,
-        hash,
-        resolved
-      }: { percentage: number; hash: string; resolved: boolean } = e.data
+      const { percentage, hash }: { percentage: number; hash: string } = e.data
       onTick?.(percentage)
-      if (resolved) {
+      if (hash) {
         console.log('文件hash：', hash)
         resolve(hash)
       }

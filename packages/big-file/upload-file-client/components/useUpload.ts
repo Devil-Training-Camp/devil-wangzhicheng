@@ -88,6 +88,7 @@ const useUpload = (
     /**
      * step 4：合并文件
      */
+    setStatus('合并文件中...')
     setUploadStatus(6)
     const { code, message } = await mergeFile({
       name: file.name,

@@ -113,13 +113,16 @@ export default class PromisePool {
 
   continue(): void {
     this.pauseSignal = false
-    while (this.queue.length && this.activeTask <= this.limit) {
-      // 啥意思？直接 resolve？
-      /**
-       * 优化：
-       * 这里有问题，应该pop出activeTask-limit个resolve并发执行
-       */
-      ++this.activeTask
+    // 啥意思？直接 resolve？
+    /**
+     * 优化：
+     * 这里应该pop出limit - activeTask个resolve消费
+     */
+    for (
+      let i = 0;
+      this.queue.length && i < this.limit - this.activeTask;
+      ++i
+    ) {
       const resolve = this.queue.shift()!
       resolve()
     }
