@@ -25,15 +25,25 @@ export default function FileUploader(props: {
     setUploadStatus
   } = useUpload(props.file)
 
+  // 重置状态
+  const reset = (): void => {
+    setRequestPool(undefined)
+    setCalcHashRatio(0)
+  }
+
   // 开始上传时
   const handleStartUpload = async (): Promise<void> => {
     setUploadStatus(2)
     const uploadSuccess: boolean = await upload()
     setUploadStatus(uploadSuccess ? 1 : 4)
     if (uploadSuccess) {
-      setRequestPool(undefined)
-      setCalcHashRatio(0)
+      // 上传成功重置状态
+      reset()
       setUploadStatus(6)
+    } else {
+      // 上传失败重置状态
+      reset()
+      setUploadStatus(-1)
     }
   }
 

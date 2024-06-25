@@ -48,16 +48,20 @@ const useUpload = (
     /**
      * step 2 检查服务器是否存在文件，文件存在直接上传成功
      */
-    const { data: checkData, code: checkCode } = await checkFileExists({
+    const {
+      data: checkData,
+      code: checkCode,
+      message: checkMessage
+    } = await checkFileExists({
       name: file.name
     })
     // 你的服务端接口一直返回 200 的呢
     /**
      * 解释：
-     * 预防性编程
+     * 错误的code在body.code中
      */
     if (checkCode !== 200) {
-      setStatus('上传失败')
+      setStatus('上传失败，' + checkMessage)
       return false
     }
     if (checkData.isExist) {
@@ -77,7 +81,7 @@ const useUpload = (
       hash
     )
     if (!uploadChunksRes) {
-      setStatus(`上传失败`)
+      setStatus(`上传失败，上传切片过程中失败`)
       return false
     }
 
@@ -94,7 +98,7 @@ const useUpload = (
       }))
     })
     if (code !== 200) {
-      setStatus('上传失败： ' + message)
+      setStatus('上传失败，' + message)
       return false
     }
     setStatus('上传成功')
