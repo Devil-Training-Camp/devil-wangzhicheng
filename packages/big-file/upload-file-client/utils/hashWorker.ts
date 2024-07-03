@@ -17,6 +17,10 @@ onmessage = async (e: MessageEvent): Promise<void> => {
     })
     ++cur
   }
+  /**
+   * 优化：关闭worker
+   */
+  self.close()
 }
 
 export async function readAsArrayBuffer(file: Blob): Promise<ArrayBuffer> {

@@ -1,7 +1,7 @@
 'use client'
 
 import Progress from '@/components/Progress'
-import useUpload from '@/components/useUpload'
+import useUpload, { UploadStatus } from '@/components/useUpload'
 
 // 这个文件太长了，拆一下
 /**
@@ -33,17 +33,21 @@ export default function FileUploader(props: {
 
   // 开始上传时
   const handleStartUpload = async (): Promise<void> => {
-    setUploadStatus(2)
+    setUploadStatus(UploadStatus.Uploading_LocalProcessing)
     const uploadSuccess: boolean = await upload()
-    setUploadStatus(uploadSuccess ? 1 : 4)
+    setUploadStatus(
+      uploadSuccess
+        ? UploadStatus.NotStart_HasFile
+        : UploadStatus.Uploaded_Success
+    )
     if (uploadSuccess) {
       // 上传成功重置状态
       reset()
-      setUploadStatus(6)
+      setUploadStatus(UploadStatus.Uploaded_Success)
     } else {
       // 上传失败重置状态
       reset()
-      setUploadStatus(-1)
+      setUploadStatus(UploadStatus.Uploaded_Failed)
     }
   }
 
@@ -51,13 +55,13 @@ export default function FileUploader(props: {
   const handlePause = () => {
     console.log('requestPool', requestPool)
     requestPool!.pause()
-    setUploadStatus(3)
+    setUploadStatus(UploadStatus.Uploading_Pause)
   }
 
   // 继续上传时
   const handleGoOn = () => {
     requestPool!.continue()
-    setUploadStatus(5)
+    setUploadStatus(UploadStatus.Uploading_UploadChunks)
   }
 
   // 上传状态表

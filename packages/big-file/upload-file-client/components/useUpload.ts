@@ -8,6 +8,27 @@ import PromisePool from '@/utils/PromisePool'
 import { RETRY } from '@/const'
 
 /**
+ * -1 上传失败
+ * 0 未有文件
+ * 1 未开始上传
+ * 2 上传中，本地处理
+ * 3 暂停中
+ * 4 上传成功
+ * 5 上传中，可暂停
+ * 6 上传中，合并文件
+ */
+export enum UploadStatus {
+  Uploaded_Failed = -1,
+  NotStart_NoFile = 0,
+  NotStart_HasFile = 1,
+  Uploading_LocalProcessing = 2,
+  Uploading_Pause = 3,
+  Uploaded_Success = 4,
+  Uploading_UploadChunks = 5,
+  Uploading_MergeChunks = 6
+}
+
+/**
  * 疑问：
  * 我感觉自己已经尽最大努力分解这个方法了
  * 还有什么更好的优化方法
@@ -23,22 +44,14 @@ const useUpload = (
   requestPool: PromisePool | undefined
   setRequestPool: Dispatch<SetStateAction<PromisePool | undefined>>
   uploadStatus: number
-  setUploadStatus: Dispatch<SetStateAction<number>>
+  setUploadStatus: Dispatch<SetStateAction<UploadStatus>>
 } => {
   const [status, setStatus] = useState<string>('')
   const [calcHashRatio, setCalcHashRatio] = useState<number>(0)
   const [requestPool, setRequestPool] = useState<PromisePool>()
-  /**
-   * -1 上传失败
-   * 0 未有文件
-   * 1 未开始上传
-   * 2 上传中，本地处理
-   * 3 暂停中
-   * 4 上传成功
-   * 5 上传中，可暂停
-   * 6 上传中，合并文件
-   */
-  const [uploadStatus, setUploadStatus] = useState<number>(1)
+  const [uploadStatus, setUploadStatus] = useState<UploadStatus>(
+    UploadStatus.NotStart_HasFile
+  )
 
   const upload = async (): Promise<boolean> => {
     /**
@@ -73,7 +86,7 @@ const useUpload = (
      * step 3: 创建并发池，上传切片
      */
     setStatus('上传中...')
-    setUploadStatus(5)
+    setUploadStatus(UploadStatus.Uploading_UploadChunks)
     const uploadChunksRes: boolean = await uploadChunks(
       fileChunks,
       file.name,
@@ -89,7 +102,7 @@ const useUpload = (
      * step 4：合并文件
      */
     setStatus('合并文件中...')
-    setUploadStatus(6)
+    setUploadStatus(UploadStatus.Uploading_MergeChunks)
     const { code, message } = await mergeFile({
       name: file.name,
       hash,
@@ -134,11 +147,14 @@ const useUpload = (
       // 切片不存在，计算
       fileChunks = splitFile(file)
       hash = await calcHash({
-        chunks: fileChunks,
-        onTick: (percentage: number): void => {
-          setCalcHashRatio(Number(percentage.toFixed(2)))
-          setStatus(`计算文件哈希中：${Math.floor(percentage * 100)}%`)
-        }
+        chunks: fileChunks
+        /**
+         * 不是顺序返回的，进度不好掌控，暂时注释掉
+         */
+        // onTick: (percentage: number): void => {
+        //   setCalcHashRatio(Number(percentage.toFixed(2)))
+        //   setStatus(`计算文件哈希中：${Math.floor(percentage * 100)}%`)
+        // }
       })
       await fs.save(filename, {
         fileChunks,
