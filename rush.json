@@ -299,6 +299,10 @@
     {
       "packageName": "@big-file/upload-file-server",
       "projectFolder": "packages/big-file/upload-file-server"
+    },
+    {
+      "packageName": "dep-graph",
+      "projectFolder": "packages/dep-graph"
     }
     // {
     //   /**
