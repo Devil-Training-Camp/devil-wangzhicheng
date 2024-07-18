@@ -1,5 +1,5 @@
 {
-  "name": "dep-graph",
+  "name": "@dep-graph/core",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -12,10 +12,11 @@
   "license": "ISC",
   "dependencies": {
     "@pnpm/lockfile-file": "~9.1.2",
-    "tsx": "~4.10.5",
-    "@types/node": "~20.12.12"
+    "tsx": "~4.10.5"
   },
   "devDependencies": {
-    "@pnpm/lockfile-types": "7.1.2"
+    "@pnpm/lockfile-types": "7.1.2",
+    "typescript": "^5",
+    "@types/node": "~20.12.12"
   }
 }

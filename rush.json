@@ -301,8 +301,12 @@
       "projectFolder": "packages/big-file/upload-file-server"
     },
     {
-      "packageName": "dep-graph",
-      "projectFolder": "packages/dep-graph"
+      "packageName": "@dep-graph/core",
+      "projectFolder": "packages/dep-graph/core"
+    },
+    {
+      "packageName": "@dep-graph/web",
+      "projectFolder": "packages/dep-graph/web"
     }
     // {
     //   /**
