@@ -16,6 +16,8 @@ export interface Dependencies {
   links: Link[]
 }
 
+const DEFAULT_DEPTH: number = Infinity
+
 export default abstract class PackageParser {
   protected filepath: string
   protected lockfile: string
@@ -24,30 +26,27 @@ export default abstract class PackageParser {
 
   constructor(filepath: string) {
     this.filepath = filepath
+    this.nodes = []
+    this.links = []
   }
 
-  public async parse(): Promise<Dependencies> {
-    if (await this.isFileExist('package.json')) {
+  public async parse(depth: number = DEFAULT_DEPTH): Promise<Dependencies> {
+    if (!(depth >= 0 && (Number.isSafeInteger(depth) || depth === Infinity))) {
+      throw new Error('Depth should be a non-negative integer.')
+    }
+    if (!(await this.isFileExist('package.json'))) {
       throw new Error(
         `${path.resolve(this.filepath, 'package.json')} is not exist.`
       )
     }
-    if (await this.isFileExist(this.lockfile)) {
+    if (!(await this.isFileExist(this.lockfile))) {
       throw new Error('package lock file is not exist.')
     }
-    await this.parseLockfile()
+    await this.parseLockfile(depth)
     return {
       nodes: this.nodes,
       links: this.links
     }
-  }
-
-  public getNodes(): Node[] {
-    return this.nodes
-  }
-
-  public getLinks(): Link[] {
-    return this.links
   }
 
   private async isFileExist(filename: string): Promise<boolean> {
@@ -59,5 +58,5 @@ export default abstract class PackageParser {
     }
   }
 
-  protected abstract parseLockfile(): Promise<Dependencies>
+  protected abstract parseLockfile(depth: number): Promise<Dependencies>
 }

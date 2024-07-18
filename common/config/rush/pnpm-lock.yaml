@@ -93,12 +93,15 @@ importers:
   ../../packages/dep-graph:
     specifiers:
       '@pnpm/lockfile-file': ~9.1.2
+      '@pnpm/lockfile-types': 7.1.2
       '@types/node': ~20.12.12
       tsx: ~4.10.5
     dependencies:
       '@pnpm/lockfile-file': 9.1.2
       '@types/node': 20.12.12
       tsx: 4.10.5
+    devDependencies:
+      '@pnpm/lockfile-types': 7.1.2
 
 packages:
   /@aashutoshrathi/word-wrap/1.2.6:
@@ -1162,7 +1165,6 @@ packages:
     engines: { node: '>=18.12' }
     dependencies:
       '@pnpm/types': 11.0.0
-    dev: false
 
   /@pnpm/lockfile-utils/11.0.3:
     resolution:
@@ -1279,7 +1281,6 @@ packages:
         integrity: sha512-BSdk9nlYLHHHLrTFNpmdrXrXVc+1sY/E1Fs1zqR8pY/KjpjVhxkruLZuXitPRPxbk4jSqm7UnG5WCz008iiaig==
       }
     engines: { node: '>=18.12' }
-    dev: false
 
   /@pnpm/util.lex-comparator/3.0.0:
     resolution:

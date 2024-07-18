@@ -1,12 +1,12 @@
-import { readWantedLockfile } from '@pnpm/lockfile-file'
-import * as fsPromise from 'node:fs/promises'
 import * as path from 'node:path'
+import PnpmPackageParser from './PnpmPackageParser'
 
 const getLockfile = async () => {
-  const lockpath = path.resolve(__dirname, '../big-file/upload-file-client')
-  console.log('path', path.resolve('../', lockpath))
-  const data = await readWantedLockfile(lockpath, { ignoreIncompatible: true })
-  await fsPromise.writeFile('lock.json', JSON.stringify(data, null, 4))
+  const filepath = path.resolve(__dirname, '../../big-file/upload-file-client')
+  console.log('path', path.resolve('../', filepath))
+  const parser = new PnpmPackageParser(filepath)
+  const res = await parser.parse(1)
+  console.log('res', res)
 }
 
 getLockfile()

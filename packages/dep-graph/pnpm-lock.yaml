@@ -15,6 +15,11 @@ dependencies:
     specifier: ~4.10.5
     version: 4.10.5
 
+devDependencies:
+  '@pnpm/lockfile-types':
+    specifier: 7.1.2
+    version: 7.1.2
+
 packages:
   /@esbuild/aix-ppc64@0.20.2:
     resolution:
@@ -459,7 +464,6 @@ packages:
     engines: { node: '>=18.12' }
     dependencies:
       '@pnpm/types': 11.0.0
-    dev: false
 
   /@pnpm/lockfile-utils@11.0.3:
     resolution:
@@ -587,7 +591,6 @@ packages:
         integrity: sha512-BSdk9nlYLHHHLrTFNpmdrXrXVc+1sY/E1Fs1zqR8pY/KjpjVhxkruLZuXitPRPxbk4jSqm7UnG5WCz008iiaig==
       }
     engines: { node: '>=18.12' }
-    dev: false
 
   /@pnpm/util.lex-comparator@3.0.0:
     resolution:
