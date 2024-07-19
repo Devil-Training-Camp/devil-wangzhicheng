@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "esnext", // 指定要使用的ECMAScript目标版本。通常使用ES2020或更高版本。
+    "module": "commonjs", // 指定要使用的模块系统。Node.js使用CommonJS模块。
+    "moduleResolution": "node", // 指定模块解析策略。Node.js项目使用node模块解析。
+    "strict": true, // 启用所有严格类型检查选项。
+    "esModuleInterop": true, // 启用对CommonJS和ES模块之间的互操作性。
+    "forceConsistentCasingInFileNames": true, // 强制文件名大小写一致。
+    "skipLibCheck": true, // 跳过声明文件的类型检查以提高编译速度。
+    "outDir": "./dist", // 指定编译输出目录。
+    "rootDir": "./src", // 指定输入文件的根目录。
+    "baseUrl": "./", // 用于解析非相对模块名称的基目录。
+    "paths": {
+      // 模块名称到基目录的映射。
+      "@src/*": ["src/*"]
+    },
+    "resolveJsonModule": true, // 允许导入JSON文件。
+    "typeRoots": ["./node_modules/@types", "./types"], // 指定包含类型声明文件的目录。
+    "lib": ["esnext"] // 包含需要在编译过程中使用的库文件。
+  },
+  "include": ["src/**/*"], // 包含的文件。
+  "exclude": ["node_modules", "dist"] // 排除的文件。
+}

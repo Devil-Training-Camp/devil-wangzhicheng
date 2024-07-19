@@ -4,21 +4,24 @@ import {
   readWantedLockfile,
   ResolvedDependencies,
   ProjectSnapshot,
-  PackageSnapshot
+  PackageSnapshot,
+  ProjectId
 } from '@pnpm/lockfile-file'
+import { DepPath } from '@pnpm/types/lib/misc'
 
 export default class PnpmPackageParser extends PackageParser {
-  private lockfileData: Lockfile
+  private lockfileData: Lockfile | null
   private nodesMap: { [key: string]: boolean } = {}
   constructor(filepath: string) {
     super(filepath)
     this.lockfile = 'pnpm-lock.yaml'
+    this.lockfileData = null
   }
 
   protected async parseLockfile(depth: number): Promise<Dependencies> {
-    this.lockfileData = await readWantedLockfile(this.filepath, {
+    this.lockfileData = (await readWantedLockfile(this.filepath, {
       ignoreIncompatible: true
-    })
+    })) as Lockfile
     const rootNodes: Node[] = this.getRootNodesFromImporters()
 
     for (const node of rootNodes) {
@@ -39,13 +42,14 @@ export default class PnpmPackageParser extends PackageParser {
     for (const depNode of depNodes) {
       this.addToLinks(node, depNode)
       if (!this.isNodeInCollection(depNode)) {
+        ++this.depth
         this.DFS(depNode, depth - 1)
       }
     }
   }
 
   private isNodeInCollection(node: Node): boolean {
-    return !!this.nodesMap[this.nodeToDependencyName(node)]
+    return this.nodesMap[this.nodeToDependencyName(node)]
   }
 
   private nodeToDependencyName(node: Node): string {
@@ -65,13 +69,14 @@ export default class PnpmPackageParser extends PackageParser {
   }
 
   private getRootNodesFromImporters(): Node[] {
-    const project: ProjectSnapshot = this.lockfileData.importers['.']
+    const project: ProjectSnapshot =
+      this.lockfileData!.importers['.' as ProjectId]
     return this.getNodesFrom(project)
   }
 
   private getNodesFromPackages(node: Node): Node[] {
-    const packageName: PackageSnapshot =
-      this.lockfileData.packages[this.nodeToDependencyName(node)]
+    const packageName: PackageSnapshot | undefined =
+      this.lockfileData!.packages?.[this.nodeToDependencyName(node) as DepPath]
     if (!packageName) {
       return []
     }
@@ -98,7 +103,8 @@ export default class PnpmPackageParser extends PackageParser {
     for (const [packageName, version] of Object.entries(deps)) {
       nodes.push({
         package: packageName,
-        version
+        version,
+        depth: this.depth
       })
     }
     return nodes

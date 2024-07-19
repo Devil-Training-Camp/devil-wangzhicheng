@@ -307,6 +307,10 @@
     {
       "packageName": "@dep-graph/web",
       "projectFolder": "packages/dep-graph/web"
+    },
+    {
+      "packageName": "@dep-graph/cli",
+      "projectFolder": "packages/dep-graph/cli"
     }
     // {
     //   /**

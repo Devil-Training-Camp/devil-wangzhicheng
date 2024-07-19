@@ -4,6 +4,7 @@ import * as fsPromises from 'node:fs/promises'
 export interface Node {
   package: string
   version: string
+  depth: number
 }
 
 export interface Link {
@@ -20,14 +21,17 @@ const DEFAULT_DEPTH: number = Infinity
 
 export default abstract class PackageParser {
   protected filepath: string
-  protected lockfile: string
+  protected lockfile: string | undefined
   protected nodes: Node[]
   protected links: Link[]
+  protected depth: number
 
   constructor(filepath: string) {
     this.filepath = filepath
     this.nodes = []
     this.links = []
+    this.lockfile = undefined
+    this.depth = 0
   }
 
   public async parse(depth: number = DEFAULT_DEPTH): Promise<Dependencies> {
@@ -39,7 +43,7 @@ export default abstract class PackageParser {
         `${path.resolve(this.filepath, 'package.json')} is not exist.`
       )
     }
-    if (!(await this.isFileExist(this.lockfile))) {
+    if (!(await this.isFileExist(this.lockfile!))) {
       throw new Error('package lock file is not exist.')
     }
     await this.parseLockfile(depth)
