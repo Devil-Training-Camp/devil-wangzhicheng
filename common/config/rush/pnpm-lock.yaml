@@ -92,6 +92,7 @@ importers:
 
   ../../packages/dep-graph/cli:
     specifiers:
+      '@dep-graph/core': workspace:*
       '@types/node': ~20.12.12
       chalk: ~5.3.0
       commander: ~12.1.0
@@ -103,6 +104,7 @@ importers:
       commander: 12.1.0
       inquirer: 10.0.3
     devDependencies:
+      '@dep-graph/core': link:../core
       '@types/node': 20.12.12
       tsx: 4.10.5
       typescript: 5.4.5
@@ -111,9 +113,16 @@ importers:
     specifiers:
       '@pnpm/lockfile-file': ~9.1.2
       '@pnpm/types': ~11.0.0
+      '@types/node': ~20.12.12
+      tsx: ~4.10.5
+      typescript: ^5
     dependencies:
       '@pnpm/lockfile-file': 9.1.2_@pnpm+logger@5.0.0
       '@pnpm/types': 11.0.0
+    devDependencies:
+      '@types/node': 20.12.12
+      tsx: 4.10.5
+      typescript: 5.4.5
 
   ../../packages/dep-graph/web:
     specifiers:

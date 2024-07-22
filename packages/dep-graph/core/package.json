@@ -2,10 +2,11 @@
   "name": "@dep-graph/core",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "debug": "tsx watch --inspect-brk src/index.ts"
+    "debug": "tsx watch --inspect-brk src/index.ts",
+    "build": "tsc --build"
   },
   "keywords": [],
   "author": "",
@@ -14,5 +15,9 @@
     "@pnpm/lockfile-file": "~9.1.2",
     "@pnpm/types": "~11.0.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "tsx": "~4.10.5",
+    "typescript": "^5",
+    "@types/node": "~20.12.12"
+  }
 }
