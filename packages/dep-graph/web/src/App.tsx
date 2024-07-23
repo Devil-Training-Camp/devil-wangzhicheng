@@ -1,9 +1,9 @@
-import ForceGraph from './view/ForceGraph.tsx'
+import DepsGraph from './view/DepsGraph.tsx'
 
 export default function App() {
   return (
     <div className="w-full h-full">
-      <ForceGraph />
+      <DepsGraph />
     </div>
   )
 }

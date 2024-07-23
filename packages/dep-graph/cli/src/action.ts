@@ -50,7 +50,7 @@ const outputAsJSON = async (
 
 const openHTML = async (deps: Dependencies): Promise<void> => {
   const server = new DepGraphServer(deps)
-  await server.start()
+  server.start()
   server.open()
 }
 
