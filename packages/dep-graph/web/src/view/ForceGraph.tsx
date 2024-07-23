@@ -1,19 +1,19 @@
 import ForceGraph3D from 'react-force-graph-3d'
-import jsonData from '../../../core/lock.json'
-function genRandomTree(N = 300, reverse = false) {
-  return {
-    nodes: [...Array(N).keys()].map((i) => ({ id: i })),
-    links: [...Array(N).keys()]
-      .filter((id) => id)
-      .map((id) => ({
-        [reverse ? 'target' : 'source']: id,
-        [reverse ? 'source' : 'target']: Math.round(Math.random() * (id - 1))
-      }))
-  }
-}
+import { Dependencies } from '@dep-graph/core/dist/PackageParser'
+// function genRandomTree(N = 300, reverse = false) {
+//   return {
+//     nodes: [...Array(N).keys()].map((i) => ({ id: i })),
+//     links: [...Array(N).keys()]
+//       .filter((id) => id)
+//       .map((id) => ({
+//         [reverse ? 'target' : 'source']: id,
+//         [reverse ? 'source' : 'target']: Math.round(Math.random() * (id - 1))
+//       }))
+//   }
+// }
 
 export default function ForceGraph() {
-  console.log('randomTree', genRandomTree())
+  const jsonData: Dependencies = window.__DEPS__ as Dependencies
   console.log('jsonData', jsonData)
   const renderData = {
     nodes: jsonData.nodes.map((node) => ({

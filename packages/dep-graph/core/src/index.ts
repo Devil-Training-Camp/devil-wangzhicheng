@@ -1,5 +1,7 @@
-import PackageParser from '@src/PackageParser'
+import PackageParser from './PackageParser'
+import PnpmPackageParser from './PnpmPackageParser'
 
 export default {
-  PackageParser
+  PackageParser,
+  PnpmPackageParser
 }

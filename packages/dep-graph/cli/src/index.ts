@@ -1,5 +1,5 @@
 import { Command } from 'commander'
-import action from '@src/action'
+import action from './action'
 
 const program = new Command()
 
