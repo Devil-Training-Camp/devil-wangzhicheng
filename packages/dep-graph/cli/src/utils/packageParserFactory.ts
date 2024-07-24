@@ -1,13 +1,10 @@
-import PackageParser from '@dep-graph/core/dist/PackageParser'
-import PnpmPackageParser from '@dep-graph/core/dist/PnpmPackageParser'
 import * as path from 'node:path'
 import FileSystem from './FileSystem'
+import PP from '@dep-graph/core'
 
-const packageParserFactory = async (
-  filepath: string
-): Promise<PackageParser> => {
+const packageParserFactory = async (filepath: string) => {
   if (await FileSystem.isFileExist(path.resolve(filepath, 'pnpm-lock.yaml'))) {
-    return new PnpmPackageParser(filepath)
+    return new PP.PnpmPackageParser(filepath)
   } else {
     throw new Error('package lock file is not exist.')
   }

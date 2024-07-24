@@ -1,8 +1,8 @@
-import { Dependencies } from '@dep-graph/core/dist/PackageParser'
 import * as c from 'node:child_process'
 import * as path from 'node:path'
 import Koa, { Context, Middleware, Next } from 'koa'
 import serve from 'koa-static'
+import { Dependencies } from '@dep-graph/core'
 
 export default class DepGraphServer {
   private readonly deps: Dependencies

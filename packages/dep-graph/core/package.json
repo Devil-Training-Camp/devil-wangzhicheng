@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
-  "types": "dist/types/index.d.ts",
+  "types": "dist/index.d.ts",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "debug": "tsx watch --inspect-brk src/index.ts",
-    "build": "rollup -c && tsc"
+    "build": "rollup -c"
   },
   "keywords": [],
   "author": "",

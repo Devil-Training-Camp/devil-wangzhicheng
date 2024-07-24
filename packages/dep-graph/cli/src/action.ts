@@ -1,5 +1,5 @@
 import packageParserFactory from './utils/packageParserFactory'
-import PackageParser, { Dependencies } from '@dep-graph/core/dist/PackageParser'
+import { Dependencies } from '@dep-graph/core'
 import * as fsPromise from 'fs/promises'
 import * as path from 'node:path'
 import DepGraphServer from './utils/DepGraphServer'
@@ -18,7 +18,7 @@ export interface AnalyzeOptions {
 const action = async (dir: string, options: AnalyzeOptions): Promise<void> => {
   const depth: number = options.D === undefined ? Infinity : Number(options.D)
 
-  const pp: PackageParser = await packageParserFactory(dir)
+  const pp = await packageParserFactory(dir)
   const deps: Dependencies = await pp.parse(depth)
   if (options.J) {
     // 输出为JSON文件
