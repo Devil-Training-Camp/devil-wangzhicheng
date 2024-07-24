@@ -1,5 +1,5 @@
 import ForceGraph3D, { GraphData } from 'react-force-graph-3d'
-import { Dependencies } from '@dep-graph/core/dist/PackageParser'
+import { type Dependencies } from '@dep-graph/core/dist/PackageParser'
 import { useEffect, useState } from 'react'
 
 const format = (deps: Dependencies): GraphData => {

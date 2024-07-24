@@ -4,7 +4,9 @@
   "description": "",
   "main": "src/index.ts",
   "scripts": {
-    "web": "tsx watch --inspect-brk src/index.ts analyze ../web"
+    "test": "tsx src/index.ts analyze ../web",
+    "debug": "tsx watch --inspect-brk src/index.ts analyze ../web",
+    "build": ""
   },
   "dependencies": {
     "commander": "~12.1.0",
