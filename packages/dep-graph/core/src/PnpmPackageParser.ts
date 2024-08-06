@@ -68,12 +68,14 @@ export default class PnpmPackageParser extends PackageParser {
     })
   }
 
+  // 从importers中获取节点信息
   private getRootNodesFromImporters(): Node[] {
     const project: ProjectSnapshot =
       this.lockfileData!.importers['.' as ProjectId]
     return this.getNodesFrom(project)
   }
 
+  // 从packages中获取节点信息
   private getNodesFromPackages(node: Node): Node[] {
     const packageName: PackageSnapshot | undefined =
       this.lockfileData!.packages?.[this.nodeToDependencyName(node) as DepPath]

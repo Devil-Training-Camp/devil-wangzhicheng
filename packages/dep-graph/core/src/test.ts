@@ -13,4 +13,15 @@ const getLockfile = async () => {
   await fsPromises.writeFile('lock.json', JSON.stringify(res, null, 4))
 }
 
-getLockfile()
+const getNpmLockfile = async () => {
+  const filepath = path.resolve(
+    __dirname,
+    '../../../big-file/upload-file-client'
+  )
+  console.log('path', path.resolve('../', filepath))
+  const parser = new PnpmPackageParser(filepath)
+  const res = await parser.parse()
+  await fsPromises.writeFile('lock.json', JSON.stringify(res, null, 4))
+}
+
+// getLockfile()
