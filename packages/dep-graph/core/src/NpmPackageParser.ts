@@ -14,7 +14,7 @@ export default class NpmPackageParser extends PackageParser {
     this.lockfileData = await import(
       path.resolve(this.filepath, this.lockfile!)
     )
-
+    console.log(this.lockfileData)
     return null
   }
 }
