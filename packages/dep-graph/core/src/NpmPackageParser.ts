@@ -1,11 +1,5 @@
-import PackageParser, { Dependencies, Node } from './PackageParser'
+import PackageParser, { Dependencies, Node, Package } from './PackageParser'
 import * as path from 'node:path'
-
-interface Package {
-  dependencies: Record<string, string>
-  devDependencies: Record<string, string>
-  peerDependencies: Record<string, string>
-}
 
 export default class NpmPackageParser extends PackageParser {
   private lockfileData: any
@@ -55,7 +49,9 @@ export default class NpmPackageParser extends PackageParser {
     const allDependencies: Record<string, string> = {
       ...(pack?.dependencies ?? {}),
       ...(pack?.devDependencies ?? {}),
-      ...(pack?.peerDependencies ?? {})
+      ...(pack?.peerDependencies ?? {}),
+      ...(pack?.optionalDependencies ?? {}),
+      ...(pack?.bundledDependencies ?? {})
     }
     return Object.entries(allDependencies).map(([p, v]) => {
       return {

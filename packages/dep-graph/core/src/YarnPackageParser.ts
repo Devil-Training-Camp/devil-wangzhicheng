@@ -1,26 +1,33 @@
-import PackageParser, { Dependencies, Node } from './PackageParser'
-import {
-  Lockfile,
-  readWantedLockfile,
-  ResolvedDependencies,
-  ProjectSnapshot,
-  PackageSnapshot,
-  ProjectId
-} from '@pnpm/lockfile-file'
-import { DepPath } from '@pnpm/types/lib/misc'
+import PackageParser, { Dependencies, Node, Package } from './PackageParser'
+import * as fsPromises from 'node:fs/promises'
+import * as path from 'node:path'
+import lockfile from '@yarnpkg/lockfile'
 
-export default class PnpmPackageParser extends PackageParser {
-  private lockfileData: Lockfile | null
+export default class YarnPackageParser extends PackageParser {
+  private lockfileData: any
+  private rootNodes: Node[]
   constructor(filepath: string) {
     super(filepath)
-    this.lockfile = 'pnpm-lock.yaml'
+    this.lockfile = 'yarn.lock'
     this.lockfileData = null
+    this.rootNodes = []
   }
 
   protected async parseLockfile(depth: number): Promise<Dependencies> {
-    this.lockfileData = (await readWantedLockfile(this.filepath, {
-      ignoreIncompatible: true
-    })) as Lockfile
+    const file = await fsPromises.readFile(
+      path.resolve(this.filepath, this.lockfile!),
+      'utf-8'
+    )
+    const parser = lockfile.parse(file)
+    if (parser.type === 'success') {
+      this.lockfileData = parser.object
+    } else {
+      return {
+        nodes: this.nodes,
+        links: this.links
+      }
+    }
+    await this.getRootNodes()
     const rootNodes: Node[] = this.getRootNodesFromImporters()
 
     for (const node of rootNodes) {
@@ -32,47 +39,43 @@ export default class PnpmPackageParser extends PackageParser {
     }
   }
 
-  // 从importers中获取节点信息
   protected getRootNodesFromImporters(): Node[] {
-    const project: ProjectSnapshot =
-      this.lockfileData!.importers['.' as ProjectId]
-    return this.getNodesFrom(project)
+    return this.rootNodes
   }
 
-  // 从packages中获取节点信息
-  protected getNodesFromPackages(node: Node): Node[] {
-    const packageName: PackageSnapshot | undefined =
-      this.lockfileData!.packages?.[this.nodeToDependencyName(node) as DepPath]
-    if (!packageName) {
-      return []
-    }
-    return this.getNodesFrom(packageName)
-  }
-
-  private getNodesFrom(snapshot: ProjectSnapshot | PackageSnapshot): Node[] {
-    const nodes: Node[] = []
-    let deps: ResolvedDependencies = Object.assign(
-      {},
-      snapshot?.dependencies,
-      snapshot?.optionalDependencies
+  /**
+   * yarn从package.json获取root节点
+   * @private
+   */
+  private async getRootNodes(): Promise<void> {
+    const file = await fsPromises.readFile(
+      path.resolve(this.filepath, 'package.json'),
+      'utf-8'
     )
-    if ('devDependencies' in snapshot) {
-      deps = Object.assign(deps, snapshot?.devDependencies)
-    } else {
-      deps = Object.assign(
-        deps,
-        (snapshot as PackageSnapshot)?.peerDependencies,
-        (snapshot as PackageSnapshot)?.bundledDependencies
-      )
-    }
+    const pack = JSON.parse(file)
+    this.rootNodes = this.getNodesFrom(pack)
+  }
 
-    for (const [packageName, version] of Object.entries(deps)) {
-      nodes.push({
-        package: packageName,
-        version,
-        depth: this.depth
-      })
+  protected getNodesFromPackages(node: Node): Node[] {
+    return this.getNodesFrom(
+      this.lockfileData[`${node.package}@${node.version}`]
+    )
+  }
+
+  private getNodesFrom(pack: Package): Node[] {
+    const allDependencies: Record<string, string> = {
+      ...(pack?.dependencies ?? {}),
+      ...(pack?.devDependencies ?? {}),
+      ...(pack?.peerDependencies ?? {}),
+      ...(pack?.optionalDependencies ?? {}),
+      ...(pack?.bundledDependencies ?? {})
     }
-    return nodes
+    return Object.entries(allDependencies).map(([p, v]) => {
+      return {
+        package: p,
+        version: v,
+        depth: this.depth
+      }
+    })
   }
 }

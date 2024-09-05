@@ -17,6 +17,14 @@ export interface Dependencies {
   links: Link[]
 }
 
+export interface Package {
+  dependencies?: Record<string, string>
+  devDependencies?: Record<string, string>
+  peerDependencies?: Record<string, string>
+  optionalDependencies?: Record<string, string>
+  bundledDependencies?: Record<string, string>
+}
+
 const DEFAULT_DEPTH: number = Infinity
 
 export default abstract class PackageParser {

@@ -123,6 +123,8 @@ importers:
       '@pnpm/types': ~11.0.0
       '@rollup/plugin-commonjs': ~26.0.1
       '@types/node': ~20.12.12
+      '@types/yarnpkg__lockfile': ~1.1.9
+      '@yarnpkg/lockfile': ~1.1.0
       rollup: ~4.19.0
       rollup-plugin-node-externals: ~7.1.2
       rollup-plugin-typescript2: ~0.36.0
@@ -131,9 +133,11 @@ importers:
     dependencies:
       '@pnpm/lockfile-file': 9.1.2_@pnpm+logger@5.0.0
       '@pnpm/types': 11.0.0
+      '@yarnpkg/lockfile': 1.1.0
     devDependencies:
       '@rollup/plugin-commonjs': 26.0.1_rollup@4.19.0
       '@types/node': 20.12.12
+      '@types/yarnpkg__lockfile': 1.1.9
       rollup: 4.19.0
       rollup-plugin-node-externals: 7.1.2_rollup@4.19.0
       rollup-plugin-typescript2: 0.36.0_ojlp4jv2yhl54wqjon4zwidszu
@@ -3140,6 +3144,13 @@ packages:
       }
     dev: false
 
+  /@types/yarnpkg__lockfile/1.1.9:
+    resolution:
+      {
+        integrity: sha512-GD4Fk15UoP5NLCNor51YdfL9MSdldKCqOC9EssrRw3HVfar9wUZ5y8Lfnp+qVD6hIinLr8ygklDYnmlnlQo12Q==
+      }
+    dev: true
+
   /@typescript-eslint/parser/6.21.0_etjje6qigiul5ehv6jbvvk4jai:
     resolution:
       {
@@ -3317,6 +3328,13 @@ packages:
       loupe: 2.3.7
       pretty-format: 29.7.0
     dev: true
+
+  /@yarnpkg/lockfile/1.1.0:
+    resolution:
+      {
+        integrity: sha512-GpSwvyXOcOOlV70vbnzjj4fW5xW/FdUF6nQEt1ENy7m4ZCczi1+/buVUPAqmGfqznsORNFzUMjctTIp8a9tuCQ==
+      }
+    dev: false
 
   /@zkochan/js-yaml/0.0.7:
     resolution:
