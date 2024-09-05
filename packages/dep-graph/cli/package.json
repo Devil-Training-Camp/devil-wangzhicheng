@@ -4,6 +4,8 @@
   "description": "",
   "main": "src/index.ts",
   "scripts": {
+    "analyze": "tsx src/index.ts analyze",
+    "debugAnalyze": "tsx watch --inspect-brk src/index.ts analyze",
     "test": "tsx src/index.ts analyze ../web",
     "debug": "tsx watch --inspect-brk src/index.ts analyze ../web",
     "build": ""
