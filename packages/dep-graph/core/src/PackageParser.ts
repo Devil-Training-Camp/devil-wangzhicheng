@@ -20,13 +20,14 @@ export interface Dependencies {
 const DEFAULT_DEPTH: number = Infinity
 
 export default abstract class PackageParser {
-  protected filepath: string
-  protected lockfile: string | undefined
-  protected nodes: Node[]
-  protected links: Link[]
-  protected depth: number
+  protected filepath: string // 项目根目录
+  protected lockfile: string | undefined // lock文件
+  protected nodes: Node[] // 解析出的节点
+  protected links: Link[] // 解析出的链
+  protected depth: number // 当前解析的深度
+  private nodesMap: { [key: string]: boolean } = {} // 保存node是否被解析过
 
-  constructor(filepath: string) {
+  protected constructor(filepath: string) {
     this.filepath = filepath
     this.nodes = []
     this.links = []
@@ -53,6 +54,41 @@ export default abstract class PackageParser {
     }
   }
 
+  protected DFS(node: Node, depth: number): void {
+    this.addToNodes(node)
+    if (depth <= 0) {
+      return
+    }
+    const depNodes = this.getNodesFromPackages(node)
+    for (const depNode of depNodes) {
+      this.addToLinks(node, depNode)
+      if (!this.isNodeInCollection(depNode)) {
+        ++this.depth
+        this.DFS(depNode, depth - 1)
+      }
+    }
+  }
+
+  protected isNodeInCollection(node: Node): boolean {
+    return this.nodesMap[this.nodeToDependencyName(node)]
+  }
+
+  protected nodeToDependencyName(node: Node): string {
+    return `${node.package}@${node.version}`
+  }
+
+  protected addToNodes(node: Node): void {
+    this.nodes.push(node)
+    this.nodesMap[this.nodeToDependencyName(node)] = true
+  }
+
+  protected addToLinks(node: Node, depNode: Node): void {
+    this.links.push({
+      source: node,
+      target: depNode
+    })
+  }
+
   private async isFileExist(filename: string): Promise<boolean> {
     try {
       await fsPromises.access(path.resolve(this.filepath, filename))
@@ -63,4 +99,16 @@ export default abstract class PackageParser {
   }
 
   protected abstract parseLockfile(depth: number): Promise<Dependencies>
+  /**
+   * 获取根节点的dependencies devDependencies peerDependencies
+   * @returns {Node[]}
+   * @private
+   */
+  protected abstract getRootNodesFromImporters(): Node[]
+  /**
+   * 从某个包中获取dependencies devDependencies peerDependencies
+   * @returns {Node[]}
+   * @private
+   */
+  protected abstract getNodesFromPackages(node: Node): Node[]
 }

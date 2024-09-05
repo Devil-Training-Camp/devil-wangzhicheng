@@ -2,6 +2,7 @@ import * as path from 'node:path'
 import PnpmPackageParser from './PnpmPackageParser'
 import * as fsPromises from 'node:fs/promises'
 import NpmPackageParser from './NpmPackageParser'
+import { fileURLToPath } from 'node:url'
 
 const getLockfile = async () => {
   const filepath = path.resolve(
@@ -15,11 +16,10 @@ const getLockfile = async () => {
 }
 
 const getNpmLockfile = async () => {
-  const filepath = path.resolve(
-    import.meta.dirname,
-    '../../../../../newlz-m-nuxt' //npm
-  )
-  console.log('path', path.resolve('../', filepath))
+  const currentPath = fileURLToPath(import.meta.url)
+  const filepath = path.resolve(currentPath, '../../../../../../newlz-m-nuxt')
+  console.log('filepath', filepath)
+
   const parser = new NpmPackageParser(filepath)
   const res = await parser.parse()
   await fsPromises.writeFile('lock.json', JSON.stringify(res, null, 4))
