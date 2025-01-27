@@ -16,6 +16,7 @@
     "react": "~18.3.1",
     "react-dom": "~18.3.1",
     "react-force-graph-3d": "~1.24.3",
+    "react-force-graph-2d": "~1.27.0",
     "@dep-graph/core": "workspace:*"
   },
   "devDependencies": {

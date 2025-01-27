@@ -1,0 +1,14 @@
+{
+  "name": "packdep",
+  "version": "1.0.1",
+  "description": "",
+  "main": "cli/dist/index.js",
+  "bin": {
+    "packdep": "cli/dist/index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

@@ -3,6 +3,7 @@ import * as path from 'node:path'
 import Koa, { Context, Middleware, Next } from 'koa'
 import serve from 'koa-static'
 import { Dependencies } from '@dep-graph/core'
+import { fileURLToPath } from 'url'
 
 export default class DepGraphServer {
   private readonly deps: Dependencies
@@ -18,7 +19,9 @@ export default class DepGraphServer {
     // koa充当服务器
     koa.use(this.getDependencies.bind(this)())
     // koa充当静态服务器
-    koa.use(serve(path.resolve(__dirname, '../../../web/dist/')))
+    const __filename = fileURLToPath(import.meta.url)
+    const __dirname = path.dirname(__filename)
+    koa.use(serve(path.resolve(__dirname, '../../web/dist/')))
 
     koa.listen(this.port, () => {
       console.log(`Server is running at http://localhost:${this.port}/`)

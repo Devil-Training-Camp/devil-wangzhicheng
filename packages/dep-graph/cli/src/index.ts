@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { Command } from 'commander'
 import action from './action'
 
@@ -9,7 +10,6 @@ program
   .version('1.0.0')
 
 program
-  .command('analyze')
   .argument('[path]', 'path to analyze node project dependencies', './')
   .option('--depth, -d <depth>', 'set the depth of parse')
   .option(

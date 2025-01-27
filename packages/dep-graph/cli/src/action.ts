@@ -3,6 +3,7 @@ import { Dependencies } from '@dep-graph/core'
 import * as fsPromise from 'fs/promises'
 import * as path from 'node:path'
 import DepGraphServer from './utils/DepGraphServer'
+import { fileURLToPath } from 'url'
 
 export interface AnalyzeOptions {
   D?: string // 遍历的深度
@@ -39,6 +40,8 @@ const outputAsJSON = async (
   deps: Dependencies,
   filepath: string
 ): Promise<void> => {
+  const __filename = fileURLToPath(import.meta.url)
+  const __dirname = path.dirname(__filename)
   const absFilepath: string = path.resolve(__dirname, filepath)
   try {
     await fsPromise.writeFile(absFilepath, JSON.stringify(deps, null, 4))
