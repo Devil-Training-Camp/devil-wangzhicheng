@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    // 是否允许在ts项目中引入js
+    "allowJs": false,
+    // 允许使用默认导入，不会改变编译后的代码，如果运行时不支持默认导出会导致错误。需要配合babel等使用
+    // 如import React from 'react'会直接编译成const React = require('react')
+    // 是否允许CommonJs中使用import React from 'react'替换import * as React from 'react'这种整体导入模式
+    "allowSyntheticDefaultImports": true,
+    // 是否启用严格模式，并且在文件头添加"use strict"
+    "alwaysStrict": true,
+    // 是否为每一个ts生成对应的.d.ts文件。也可以为js生成.d.ts文件
+    "declaration": true,
+    // 启用后跟踪项目构建状态，会为项目生成一些元数据.tsbuildinfo。增量构建
+    "composite": true,
+    // 生成.tsbuildinfo增量编译，开启composite后会强制开启
+    "incremental": true,
+    // 是否启用严格空值检查，null和undefined是所有元素的子集，let x: number可以x = null。启用后会抛出错误
+    "strictNullChecks": true,
+    // 禁止隐式any，ts会强制你为所有参数，返回值显示的指定类型function a(b){}，其中b是隐式类型
+    "noImplicitAny": true,
+    // 严格检查bind，call，apply。假如function getName (name: string)，使用getName.call(null, 1)，未启用是不会报错的
+    "strictBindCallApply": true,
+    // 增强CommonJs和es的互操作性，改变编译后的代码。不会造成import运行时。默认会打开allowSyntheticDefaultImports
+    // import React from 'react'会编译成
+    // var __importDefault = (this && this.__importDefault) || function (mod) {
+    //    return (mod && mod.__esModule) ? mod : { "default": mod };
+    // };
+    // const React = __importDefault(require('react'));
+    "esModuleInterop": true,
+    // 对装饰器的支持
+    "experimentalDecorators": true,
+    // 强制文件名大小写一致，import {a} from './utils'，在大小写不敏感的windows中也可以用Utils
+    "forceConsistentCasingInFileNames": true,
+    // 模块查找方法
+    // classic 弃用，不支持node_modules解析
+    // node：适用于CommonJs模块，配合"module": "CommonJs"。
+    //       ./utils查找路径：./utils.ts --> ./utils.tsx --> ./utils.d.ts
+    //                       ./utils/index.ts --> ./utils/index.tsx --> ./utils/index.d.ts
+    // node16和nodenext：支持node的es解析模式。同时适用于ESModule和Commonjs，需要在package.json中设置type
+    //                   根据package.json中的type判断是module还是commonjs
+    //                   对于module，优先查找mjs
+    //                   对于commonjs，优先查找cjs
+    // 浏览器环境推荐"moduleResolution": "node", "module": "esnext"，因为npm包基本都是node解析模式
+    // 混合环境推荐"moduleResolution": "nodenext"
+    "moduleResolution": "node",
+    // 编译时需要包含的js运行时，哪些环境的API是可以使用的。会根据target自动选择
+    // 只做类型检查，允许你使用哪些语法，并不会polyfill。需要结合polyfill工具
+    // ts会转译语法特性（箭头函数，await/async）但不会polyfill
+    // DOM：常用浏览器API
+    // DOM.Iterable 支持NodeList等可迭代对象
+    // ES2015/ES2017: 比较新的语法
+    // ESNext：最新的语法
+    // 浏览器/SSR项目 ["DOM", "DOM.Iterable", "ESNext"]
+    // Node项目["ESNext"]
+    "lib": ["ESNext"],
+    // 决定编译时如何转换import和export
+    // 配合webpack，rollup等打包工具使用这个0124
+    // ESNext：保持原始的ES模块语法
+    // CommonJS：导入转换成require和module.export
+    // amd/umd/system等：转换为对应的语法
+    // none: 禁用模块功能，所有代码都放在一个文件中
+    "module": "ESNext"
+  }
+}

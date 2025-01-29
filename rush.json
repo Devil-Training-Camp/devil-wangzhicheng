@@ -293,6 +293,10 @@
    */
   "projects": [
     {
+      "packageName": "@infra/ts-config",
+      "projectFolder": "config/ts-config"
+    },
+    {
       "packageName": "@big-file/upload-file-client",
       "projectFolder": "packages/big-file/upload-file-client"
     },
