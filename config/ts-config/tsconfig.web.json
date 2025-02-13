@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json.schemastore.org/tsconfig",
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    // 是否为每个ts文件生成同名.d.ts文件
+    "declaration": true,
+    // 如何处理jsx文件，preserve不会转换jsx代码
+    "jsx": "preserve",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"]
+  }
+}

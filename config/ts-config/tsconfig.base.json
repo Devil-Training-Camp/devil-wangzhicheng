@@ -55,11 +55,31 @@
     // Node项目["ESNext"]
     "lib": ["ESNext"],
     // 决定编译时如何转换import和export
-    // 配合webpack，rollup等打包工具使用这个0124
+    // 配合webpack，rollup等打包工具使用这个ESNext
     // ESNext：保持原始的ES模块语法
     // CommonJS：导入转换成require和module.export
     // amd/umd/system等：转换为对应的语法
     // none: 禁用模块功能，所有代码都放在一个文件中
-    "module": "ESNext"
+    "module": "ESNext",
+    // switch每一个case后都必须break，防止fall through
+    "noFallthroughCasesInSwitch": true,
+    // 所有的条件分支都要有return，除非函数返回值明确是void
+    "noImplicitReturns": false,
+    // 编译后是否保留注释
+    "removeComments": false,
+    // 支持将JSON文件当作模块导入 import * as json from './data.json',变成JS对象
+    "resolveJsonModule": true,
+    // 跳过所有外部类型文件的检查(.d.ts),提高编译速度
+    "skipLibCheck": true,
+    // 是否为ts文件生成sourceMap，编译后会生成a.js和a.js.map
+    "sourceMap": true,
+    // 是否启用严格模式
+    "strict": true,
+    // 编译后目标js版本，ESNext支持最新特性。支持旧浏览器可以使用ES5
+    "target": "ESNext",
+    // watch模式，文件变动时重新编译
+    "watchOptions": {
+      "excludeDirectories": ["**/node_modules", "**/__test__", "output", "dist"]
+    }
   }
 }
